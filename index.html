@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shredding.io — ASMR Shredder Simulator</title>
+    <title>Shredding.io — ASMR Crusher Simulator</title>
     <style>
       :root {
         color-scheme: dark;
@@ -97,23 +97,6 @@
         align-items: center;
       }
 
-      .throw-btn {
-        border: 0;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #3ac3aa, #71e9d0);
-        color: #082017;
-        font-weight: 700;
-        padding: 10px 14px;
-        cursor: pointer;
-        transition: 0.2s ease;
-      }
-
-      .throw-btn:hover,
-      .throw-btn:focus-visible {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 20px rgba(58, 195, 170, 0.35);
-      }
-
       .scene {
         position: relative;
         height: min(70vh, 680px);
@@ -128,44 +111,84 @@
         pointer-events: none;
       }
 
-      .shredder {
+      .crusher {
         position: absolute;
         left: 8%;
         right: 8%;
-        bottom: 16%;
-        height: 220px;
-        border-radius: 20px;
+        bottom: 14%;
+        height: 240px;
+        pointer-events: none;
+      }
+
+      .crusher-frame-left,
+      .crusher-frame-right {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 28px;
         background: linear-gradient(180deg, #2d384f, #1c2432);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.03), 0 24px 50px rgba(0, 0, 0, 0.5);
+        border-radius: 6px;
+        box-shadow: inset 0 4px 14px rgba(255, 255, 255, 0.04);
       }
 
-      .slot {
+      .crusher-frame-left { left: 0; }
+      .crusher-frame-right { right: 0; }
+
+      .crusher-press {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        top: 0;
+        height: 70px;
+        background: linear-gradient(180deg, #455271, #232c3e);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px 8px 4px 4px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5),
+          inset 0 -6px 0 rgba(0, 0, 0, 0.35);
+        transform: translateY(0);
+        transition: transform 0.32s cubic-bezier(0.7, 0, 0.4, 1);
+      }
+
+      .crusher-press::after {
+        content: '';
+        position: absolute;
+        left: 10%;
+        right: 10%;
+        bottom: -8px;
+        height: 8px;
+        background: linear-gradient(180deg, #6a7796, #2c3548);
+        border-radius: 3px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .crusher-press.smash {
+        transform: translateY(110px);
+        transition: transform 0.18s cubic-bezier(0.5, 0, 0.9, 1);
+      }
+
+      .crusher-anvil {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 36px;
+        background: linear-gradient(180deg, #3a4663, #1a2231);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        box-shadow: 0 18px 30px rgba(0, 0, 0, 0.5),
+          inset 0 4px 10px rgba(255, 255, 255, 0.04);
+      }
+
+      .crusher-anvil::before {
+        content: '';
         position: absolute;
         left: 8%;
         right: 8%;
-        top: 22px;
-        height: 42px;
-        background: radial-gradient(ellipse at center, #071016, #020406);
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .teeth {
-        position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(
-          90deg,
-          rgba(114, 233, 208, 0.12) 0 8px,
-          rgba(8, 17, 22, 0.8) 8px 16px
-        );
-        animation: teeth 0.18s linear infinite;
-      }
-
-      @keyframes teeth {
-        from { transform: translateX(0); }
-        to { transform: translateX(16px); }
+        top: -3px;
+        height: 6px;
+        background: linear-gradient(180deg, #5a6786, #2a3346);
+        border-radius: 4px;
       }
 
       .item {
@@ -178,37 +201,131 @@
         border-radius: 12px;
         font-size: 2rem;
         pointer-events: none;
-        transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), top 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+        will-change: transform, opacity, filter;
+        transition: top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 0.5s ease;
       }
 
       .item.drop {
-        top: 48%;
+        /* lands on top of the anvil */
+        top: calc(100% - (14% + 36px + 70px));
       }
 
-      .item.shred {
-        top: 70%;
-        opacity: 0;
-        filter: blur(1.2px);
-        transform: translateX(-50%) scaleX(0.16) scaleY(0.75);
+      /* --- Per-object crush animations --- */
+
+      /* Paper: crumple flat with a couple of wrinkles */
+      .item.crush-paper {
+        animation: crush-paper 0.55s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+      }
+      @keyframes crush-paper {
+        0%   { transform: translateX(-50%) scaleY(1)    rotate(0deg); }
+        45%  { transform: translateX(-50%) scaleY(0.55) rotate(-3deg); }
+        70%  { transform: translateX(-50%) scaleY(0.28) rotate(2deg); filter: blur(0.4px); }
+        100% { transform: translateX(-50%) scaleY(0.12) rotate(0deg); opacity: 0.55; filter: blur(1px); }
       }
 
-      .particle {
+      /* Sticky note: crumple into a ball */
+      .item.crush-sticky {
+        animation: crush-sticky 0.65s cubic-bezier(0.5, 0.1, 0.3, 1.2) forwards;
+      }
+      @keyframes crush-sticky {
+        0%   { transform: translateX(-50%) scale(1)    rotate(0deg); border-radius: 8px; }
+        50%  { transform: translateX(-50%) scale(0.55) rotate(-180deg); border-radius: 30%; }
+        100% { transform: translateX(-50%) scale(0.22) rotate(-360deg); border-radius: 50%; opacity: 0.65; }
+      }
+
+      /* Credit card / coupon: split in two halves */
+      .item.split {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+
+      .half {
         position: absolute;
-        width: 8px;
-        height: 4px;
-        border-radius: 999px;
-        background: rgba(114, 233, 208, 0.7);
-        pointer-events: none;
-        animation: fly 0.85s ease-out forwards;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-size: inherit;
+        background: inherit;
+        border-radius: inherit;
+        will-change: transform, opacity;
       }
 
-      @keyframes fly {
+      /* Card: clean snap horizontally (top half tilts up, bottom flips down) */
+      .half.card-top {
+        clip-path: inset(0 0 50% 0);
+        background: var(--half-bg, #79c6ff);
+        border-radius: 8px;
+        animation: card-top 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+      }
+      .half.card-bottom {
+        clip-path: inset(50% 0 0 0);
+        background: var(--half-bg, #79c6ff);
+        border-radius: 8px;
+        animation: card-bottom 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+      }
+      @keyframes card-top {
+        0%   { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(-30px, 30px) rotate(-28deg); opacity: 0.85; }
+      }
+      @keyframes card-bottom {
+        0%   { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(30px, 40px) rotate(26deg); opacity: 0.85; }
+      }
+
+      /* Coupon: jagged tear vertically */
+      .half.coupon-left {
+        clip-path: polygon(0 0, 52% 0, 48% 18%, 54% 35%, 46% 55%, 52% 75%, 48% 100%, 0 100%);
+        background: var(--half-bg, #ffd98a);
+        border-radius: 6px;
+        animation: coupon-left 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+      }
+      .half.coupon-right {
+        clip-path: polygon(52% 0, 100% 0, 100% 100%, 48% 100%, 52% 75%, 46% 55%, 54% 35%, 48% 18%);
+        background: var(--half-bg, #ffd98a);
+        border-radius: 6px;
+        animation: coupon-right 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+      }
+      @keyframes coupon-left {
+        0%   { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(-46px, 30px) rotate(-22deg); opacity: 0.8; }
+      }
+      @keyframes coupon-right {
+        0%   { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(46px, 36px) rotate(20deg); opacity: 0.8; }
+      }
+
+      /* CD: shatter into many shards */
+      .item.crush-cd {
+        animation: crush-cd 0.4s ease-out forwards;
+      }
+      @keyframes crush-cd {
+        0%   { transform: translateX(-50%) scale(1); }
+        50%  { transform: translateX(-50%) scaleY(0.45); }
+        100% { transform: translateX(-50%) scale(0.1); opacity: 0; }
+      }
+
+      .shard {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        background: var(--shard-bg, rgba(216, 207, 255, 0.85));
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+        pointer-events: none;
+        animation: shard-fly 0.9s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+      }
+      @keyframes shard-fly {
         from {
-          transform: translate(0, 0) scale(1);
+          transform: translate(0, 0) rotate(0deg);
           opacity: 1;
         }
         to {
-          transform: translate(var(--dx), var(--dy)) scale(0.35);
+          transform: translate(var(--dx), var(--dy)) rotate(var(--rot, 240deg));
           opacity: 0;
         }
       }
@@ -233,116 +350,173 @@
   <body>
     <main class="app">
       <section class="controls card">
-        <h1>Shredder Simulator</h1>
-        <p class="hint">Pick an item and send it into the smooth shredder flow (Space to throw).</p>
+        <h1>Crusher Simulator</h1>
+        <p class="hint">Click an object to send it straight under the press — no confirmation needed.</p>
         <div class="item-list" id="itemList"></div>
         <div class="meta">
-          <strong id="counter">Shredded: 0</strong>
-          <button class="throw-btn" id="throwBtn" type="button" aria-keyshortcuts="Space">Throw item</button>
+          <strong id="counter">Crushed: 0</strong>
         </div>
         <p class="log" id="log" aria-live="polite"></p>
       </section>
 
       <section class="scene card" id="scene">
         <div class="top-light"></div>
-        <div class="shredder">
-          <div class="slot"><div class="teeth"></div></div>
+        <div class="crusher">
+          <div class="crusher-frame-left"></div>
+          <div class="crusher-frame-right"></div>
+          <div class="crusher-press" id="crusherPress"></div>
+          <div class="crusher-anvil"></div>
         </div>
       </section>
     </main>
 
     <script>
       const items = [
-        { name: 'Paper Stack', emoji: '📄', color: '#f6f7fb' },
-        { name: 'Old Credit Card', emoji: '💳', color: '#79c6ff' },
-        { name: 'Expired Coupon', emoji: '🎟️', color: '#ffd98a' },
-        { name: 'Sticky Note', emoji: '🗒️', color: '#ffe66d' },
-        { name: 'CD Disk', emoji: '💿', color: '#d8cfff' }
+        { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb' },
+        { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff' },
+        { id: 'coupon', name: 'Expired Coupon',  emoji: '🎟️', color: '#ffd98a' },
+        { id: 'sticky', name: 'Sticky Note',     emoji: '🗒️', color: '#ffe66d' },
+        { id: 'cd',     name: 'CD Disk',         emoji: '💿', color: '#d8cfff' }
       ];
 
       const itemList = document.getElementById('itemList');
-      const throwBtn = document.getElementById('throwBtn');
       const scene = document.getElementById('scene');
+      const press = document.getElementById('crusherPress');
       const log = document.getElementById('log');
       const counter = document.getElementById('counter');
 
-      let selected = items[0];
-      let shredding = false;
-      let shreddedTotal = 0;
+      let crushing = false;
+      let crushedTotal = 0;
 
       function renderItems() {
         itemList.innerHTML = '';
         items.forEach((item) => {
           const button = document.createElement('button');
           button.type = 'button';
-          button.className = `item-btn${selected === item ? ' active' : ''}`;
+          button.className = 'item-btn';
           button.textContent = `${item.emoji} ${item.name}`;
-          button.addEventListener('click', () => {
-            selected = item;
-            renderItems();
-            log.textContent = `${item.name} selected.`;
-          });
+          button.addEventListener('click', () => crushItem(item, button));
           itemList.appendChild(button);
         });
       }
 
-      function createParticles(x, y, color) {
-        for (let i = 0; i < 18; i += 1) {
-          const particle = document.createElement('span');
-          particle.className = 'particle';
-          particle.style.left = `${x}px`;
-          particle.style.top = `${y}px`;
-          particle.style.background = color;
-          particle.style.setProperty('--dx', `${(Math.random() - 0.5) * 220}px`);
-          particle.style.setProperty('--dy', `${80 + Math.random() * 140}px`);
-          scene.appendChild(particle);
-          particle.addEventListener('animationend', () => particle.remove(), { once: true });
+      function createShards(x, y, color, count = 14) {
+        for (let i = 0; i < count; i += 1) {
+          const shard = document.createElement('span');
+          shard.className = 'shard';
+          shard.style.left = `${x}px`;
+          shard.style.top = `${y}px`;
+          shard.style.setProperty('--shard-bg', color);
+          shard.style.setProperty('--dx', `${(Math.random() - 0.5) * 320}px`);
+          shard.style.setProperty('--dy', `${60 + Math.random() * 180}px`);
+          shard.style.setProperty('--rot', `${(Math.random() - 0.5) * 720}deg`);
+          const size = 6 + Math.random() * 10;
+          shard.style.width = `${size}px`;
+          shard.style.height = `${size}px`;
+          scene.appendChild(shard);
+          shard.addEventListener('animationend', () => shard.remove(), { once: true });
         }
       }
 
-      function shredSelected() {
-        if (shredding) return;
+      function buildItemElement(def) {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.dataset.kind = def.id;
+        el.style.background = def.color;
+        el.style.width = '110px';
+        el.style.height = '72px';
 
-        shredding = true;
-        throwBtn.disabled = true;
+        // Default: just the emoji label
+        if (def.id !== 'card' && def.id !== 'coupon') {
+          el.textContent = def.emoji;
+        } else {
+          // Pre-build halves so we can switch to a split animation on impact
+          const top = document.createElement('span');
+          const bottom = document.createElement('span');
+          top.className = def.id === 'card' ? 'half card-top'    : 'half coupon-left';
+          bottom.className = def.id === 'card' ? 'half card-bottom' : 'half coupon-right';
+          top.style.setProperty('--half-bg', def.color);
+          bottom.style.setProperty('--half-bg', def.color);
+          // Show the emoji on each half (clipped to top/bottom or left/right)
+          top.textContent = def.emoji;
+          bottom.textContent = def.emoji;
+          // Until impact, halves should not yet animate apart — pause animations.
+          top.style.animationPlayState = 'paused';
+          bottom.style.animationPlayState = 'paused';
+          el.appendChild(top);
+          el.appendChild(bottom);
+        }
+        return el;
+      }
 
-        const item = document.createElement('div');
-        item.className = 'item';
-        item.textContent = selected.emoji;
-        item.style.background = selected.color;
-        item.style.width = '110px';
-        item.style.height = '72px';
+      function applyCrush(itemEl, def) {
+        switch (def.id) {
+          case 'paper':
+            itemEl.classList.add('crush-paper');
+            break;
+          case 'sticky':
+            itemEl.classList.add('crush-sticky');
+            break;
+          case 'card':
+          case 'coupon':
+            itemEl.classList.add('split');
+            // Resume the paused half animations to perform the snap/tear.
+            itemEl.querySelectorAll('.half').forEach((h) => {
+              h.style.animationPlayState = 'running';
+            });
+            break;
+          case 'cd': {
+            itemEl.classList.add('crush-cd');
+            const bounds = itemEl.getBoundingClientRect();
+            const sceneBounds = scene.getBoundingClientRect();
+            createShards(
+              bounds.left - sceneBounds.left + bounds.width / 2,
+              bounds.top - sceneBounds.top + bounds.height / 2,
+              def.color,
+              22
+            );
+            break;
+          }
+        }
+      }
 
+      function crushItem(def, button) {
+        if (crushing) return;
+        crushing = true;
+        if (button) button.classList.add('active');
+
+        const item = buildItemElement(def);
         scene.appendChild(item);
         requestAnimationFrame(() => item.classList.add('drop'));
 
+        // Drop, then bring down the press to crush on impact.
         setTimeout(() => {
-          item.classList.add('shred');
-          const bounds = item.getBoundingClientRect();
-          const sceneBounds = scene.getBoundingClientRect();
-          createParticles(bounds.left - sceneBounds.left + bounds.width / 2, bounds.top - sceneBounds.top + bounds.height / 2, selected.color);
-          shreddedTotal += 1;
-          counter.textContent = `Shredded: ${shreddedTotal}`;
-          log.textContent = `${selected.name} shredded ✨`;
-        }, 560);
+          press.classList.add('smash');
+        }, 480);
 
+        // Press meets the object: trigger per-object crush animation.
+        setTimeout(() => {
+          applyCrush(item, def);
+          crushedTotal += 1;
+          counter.textContent = `Crushed: ${crushedTotal}`;
+          log.textContent = `${def.name} crushed ✨`;
+        }, 660);
+
+        // Retract press.
+        setTimeout(() => {
+          press.classList.remove('smash');
+        }, 980);
+
+        // Cleanup.
         setTimeout(() => {
           item.remove();
-          shredding = false;
-          throwBtn.disabled = false;
-        }, 1240);
+          if (button) button.classList.remove('active');
+          crushing = false;
+        }, 1500);
       }
 
-      throwBtn.addEventListener('click', shredSelected);
-      document.addEventListener('keydown', (event) => {
-        if (event.code === 'Space') {
-          event.preventDefault();
-          shredSelected();
-        }
-      });
-
       renderItems();
-      log.textContent = `${selected.name} selected.`;
+      log.textContent = 'Pick an object to crush.';
     </script>
   </body>
 </html>
