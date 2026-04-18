@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shredding.io — ASMR Shredder Simulator</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1117;
+        --panel: rgba(26, 31, 43, 0.82);
+        --accent: #72e9d0;
+        --accent-soft: rgba(114, 233, 208, 0.35);
+        --text: #e7eefb;
+        --muted: #9ab0cb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 15% 10%, #1b2340, var(--bg) 46%),
+          radial-gradient(circle at 85% 95%, #1a2f27, transparent 42%);
+        font-family: Inter, Segoe UI, Roboto, sans-serif;
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      .app {
+        width: min(980px, 94vw);
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 18px;
+      }
+
+      .card {
+        backdrop-filter: blur(18px);
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 18px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      }
+
+      .controls {
+        padding: 18px;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.4rem;
+      }
+
+      .hint {
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .item-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .item-btn {
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text);
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .item-btn:hover,
+      .item-btn:focus-visible {
+        transform: translateY(-1px);
+        border-color: var(--accent-soft);
+        background: rgba(114, 233, 208, 0.09);
+      }
+
+      .item-btn.active {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-soft);
+      }
+
+      .meta {
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .throw-btn {
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #3ac3aa, #71e9d0);
+        color: #082017;
+        font-weight: 700;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: 0.2s ease;
+      }
+
+      .throw-btn:hover,
+      .throw-btn:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(58, 195, 170, 0.35);
+      }
+
+      .scene {
+        position: relative;
+        height: min(70vh, 680px);
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
+      .top-light {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(114, 233, 208, 0.18), transparent 32%);
+        pointer-events: none;
+      }
+
+      .shredder {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 16%;
+        height: 220px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #2d384f, #1c2432);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 4px 20px rgba(255, 255, 255, 0.03), 0 24px 50px rgba(0, 0, 0, 0.5);
+      }
+
+      .slot {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: 22px;
+        height: 42px;
+        background: radial-gradient(ellipse at center, #071016, #020406);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .teeth {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(114, 233, 208, 0.12) 0 8px,
+          rgba(8, 17, 22, 0.8) 8px 16px
+        );
+        animation: teeth 0.18s linear infinite;
+      }
+
+      @keyframes teeth {
+        from { transform: translateX(0); }
+        to { transform: translateX(16px); }
+      }
+
+      .item {
+        position: absolute;
+        left: 50%;
+        top: -90px;
+        transform: translateX(-50%);
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        font-size: 2rem;
+        pointer-events: none;
+        transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), top 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+      }
+
+      .item.drop {
+        top: 48%;
+      }
+
+      .item.shred {
+        top: 70%;
+        opacity: 0;
+        filter: blur(1.2px);
+        transform: translateX(-50%) scaleX(0.16) scaleY(0.75);
+      }
+
+      .particle {
+        position: absolute;
+        width: 8px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(114, 233, 208, 0.7);
+        pointer-events: none;
+        animation: fly 0.85s ease-out forwards;
+      }
+
+      @keyframes fly {
+        from {
+          transform: translate(0, 0) scale(1);
+          opacity: 1;
+        }
+        to {
+          transform: translate(var(--dx), var(--dy)) scale(0.35);
+          opacity: 0;
+        }
+      }
+
+      .log {
+        margin-top: 10px;
+        min-height: 1.2em;
+        color: var(--accent);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .scene {
+          height: min(55vh, 500px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="controls card">
+        <h1>Shredder Simulator</h1>
+        <p class="hint">Pick an item and send it into the smooth shredder flow (Space to throw).</p>
+        <div class="item-list" id="itemList"></div>
+        <div class="meta">
+          <strong id="counter">Shredded: 0</strong>
+          <button class="throw-btn" id="throwBtn" type="button" aria-keyshortcuts="Space">Throw item</button>
+        </div>
+        <p class="log" id="log" aria-live="polite"></p>
+      </section>
+
+      <section class="scene card" id="scene">
+        <div class="top-light"></div>
+        <div class="shredder">
+          <div class="slot"><div class="teeth"></div></div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const items = [
+        { name: 'Paper Stack', emoji: '📄', color: '#f6f7fb' },
+        { name: 'Old Credit Card', emoji: '💳', color: '#79c6ff' },
+        { name: 'Expired Coupon', emoji: '🎟️', color: '#ffd98a' },
+        { name: 'Sticky Note', emoji: '🗒️', color: '#ffe66d' },
+        { name: 'CD Disk', emoji: '💿', color: '#d8cfff' }
+      ];
+
+      const itemList = document.getElementById('itemList');
+      const throwBtn = document.getElementById('throwBtn');
+      const scene = document.getElementById('scene');
+      const log = document.getElementById('log');
+      const counter = document.getElementById('counter');
+
+      let selected = items[0];
+      let shredding = false;
+      let shreddedTotal = 0;
+
+      function renderItems() {
+        itemList.innerHTML = '';
+        items.forEach((item) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = `item-btn${selected === item ? ' active' : ''}`;
+          button.textContent = `${item.emoji} ${item.name}`;
+          button.addEventListener('click', () => {
+            selected = item;
+            renderItems();
+            log.textContent = `${item.name} selected.`;
+          });
+          itemList.appendChild(button);
+        });
+      }
+
+      function createParticles(x, y, color) {
+        for (let i = 0; i < 18; i += 1) {
+          const particle = document.createElement('span');
+          particle.className = 'particle';
+          particle.style.left = `${x}px`;
+          particle.style.top = `${y}px`;
+          particle.style.background = color;
+          particle.style.setProperty('--dx', `${(Math.random() - 0.5) * 220}px`);
+          particle.style.setProperty('--dy', `${80 + Math.random() * 140}px`);
+          scene.appendChild(particle);
+          particle.addEventListener('animationend', () => particle.remove(), { once: true });
+        }
+      }
+
+      function shredSelected() {
+        if (shredding) return;
+
+        shredding = true;
+        throwBtn.disabled = true;
+
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.textContent = selected.emoji;
+        item.style.background = selected.color;
+        item.style.width = '110px';
+        item.style.height = '72px';
+
+        scene.appendChild(item);
+        requestAnimationFrame(() => item.classList.add('drop'));
+
+        setTimeout(() => {
+          item.classList.add('shred');
+          const bounds = item.getBoundingClientRect();
+          const sceneBounds = scene.getBoundingClientRect();
+          createParticles(bounds.left - sceneBounds.left + bounds.width / 2, bounds.top - sceneBounds.top + bounds.height / 2, selected.color);
+          shreddedTotal += 1;
+          counter.textContent = `Shredded: ${shreddedTotal}`;
+          log.textContent = `${selected.name} shredded ✨`;
+        }, 560);
+
+        setTimeout(() => {
+          item.remove();
+          shredding = false;
+          throwBtn.disabled = false;
+        }, 1240);
+      }
+
+      throwBtn.addEventListener('click', shredSelected);
+      document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+          event.preventDefault();
+          shredSelected();
+        }
+      });
+
+      renderItems();
+      log.textContent = `${selected.name} selected.`;
+    </script>
+  </body>
+</html>
