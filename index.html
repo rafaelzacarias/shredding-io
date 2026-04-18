@@ -3,56 +3,60 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shredding.io — ASMR Crusher Simulator</title>
+    <title>Shredding.io — Industrial Shredder Simulator</title>
     <style>
       :root {
         color-scheme: dark;
-        --bg: #0f1117;
-        --panel: rgba(26, 31, 43, 0.82);
-        --accent: #72e9d0;
-        --accent-soft: rgba(114, 233, 208, 0.35);
-        --text: #e7eefb;
-        --muted: #9ab0cb;
+        --bg: #0e0d0b;
+        --panel: rgba(28, 24, 20, 0.86);
+        --accent: #ff8a3d;          /* rust / hot-metal orange */
+        --accent-soft: rgba(255, 138, 61, 0.32);
+        --text: #f1ece2;
+        --muted: #b6a999;
+        --steel-1: #4a4640;
+        --steel-2: #2a2724;
+        --steel-3: #1a1714;
+        --rust-1: #8a5a30;
+        --rust-2: #5a3a1f;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
         min-height: 100vh;
         display: grid;
         place-items: center;
-        background: radial-gradient(circle at 15% 10%, #1b2340, var(--bg) 46%),
-          radial-gradient(circle at 85% 95%, #1a2f27, transparent 42%);
+        background:
+          radial-gradient(circle at 15% 10%, #2a1f17, var(--bg) 50%),
+          radial-gradient(circle at 85% 95%, #1f1a14, transparent 45%),
+          var(--bg);
         font-family: Inter, Segoe UI, Roboto, sans-serif;
         color: var(--text);
         overflow: hidden;
       }
 
       .app {
-        width: min(980px, 94vw);
+        width: min(1020px, 95vw);
         display: grid;
         grid-template-columns: 300px 1fr;
         gap: 18px;
       }
 
       .card {
-        backdrop-filter: blur(18px);
+        backdrop-filter: blur(14px);
         background: var(--panel);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 18px;
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
       }
 
-      .controls {
-        padding: 18px;
-      }
+      .controls { padding: 18px; }
 
       h1 {
         margin: 0 0 4px;
-        font-size: 1.4rem;
+        font-size: 1.35rem;
+        letter-spacing: 0.5px;
       }
 
       .hint {
@@ -61,28 +65,26 @@
         font-size: 0.92rem;
       }
 
-      .item-list {
-        display: grid;
-        gap: 10px;
-      }
+      .item-list { display: grid; gap: 10px; }
 
       .item-btn {
         width: 100%;
         text-align: left;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(255, 255, 255, 0.03);
         color: var(--text);
         border-radius: 12px;
         padding: 12px;
         cursor: pointer;
         transition: 0.2s ease;
+        font-size: 0.95rem;
       }
 
       .item-btn:hover,
       .item-btn:focus-visible {
         transform: translateY(-1px);
         border-color: var(--accent-soft);
-        background: rgba(114, 233, 208, 0.09);
+        background: rgba(255, 138, 61, 0.08);
       }
 
       .item-btn.active {
@@ -97,239 +99,6 @@
         align-items: center;
       }
 
-      .scene {
-        position: relative;
-        height: min(70vh, 680px);
-        overflow: hidden;
-        border-radius: 18px;
-      }
-
-      .top-light {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(114, 233, 208, 0.18), transparent 32%);
-        pointer-events: none;
-      }
-
-      .crusher {
-        position: absolute;
-        left: 8%;
-        right: 8%;
-        bottom: 14%;
-        height: 240px;
-        pointer-events: none;
-      }
-
-      .crusher-frame-left,
-      .crusher-frame-right {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 28px;
-        background: linear-gradient(180deg, #2d384f, #1c2432);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 6px;
-        box-shadow: inset 0 4px 14px rgba(255, 255, 255, 0.04);
-      }
-
-      .crusher-frame-left { left: 0; }
-      .crusher-frame-right { right: 0; }
-
-      .crusher-press {
-        position: absolute;
-        left: 28px;
-        right: 28px;
-        top: 0;
-        height: 70px;
-        background: linear-gradient(180deg, #455271, #232c3e);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 8px 8px 4px 4px;
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5),
-          inset 0 -6px 0 rgba(0, 0, 0, 0.35);
-        transform: translateY(0);
-        transition: transform 0.32s cubic-bezier(0.7, 0, 0.4, 1);
-      }
-
-      .crusher-press::after {
-        content: '';
-        position: absolute;
-        left: 10%;
-        right: 10%;
-        bottom: -8px;
-        height: 8px;
-        background: linear-gradient(180deg, #6a7796, #2c3548);
-        border-radius: 3px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-      }
-
-      .crusher-press.smash {
-        transform: translateY(110px);
-        transition: transform 0.18s cubic-bezier(0.5, 0, 0.9, 1);
-      }
-
-      .crusher-anvil {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 36px;
-        background: linear-gradient(180deg, #3a4663, #1a2231);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 6px;
-        box-shadow: 0 18px 30px rgba(0, 0, 0, 0.5),
-          inset 0 4px 10px rgba(255, 255, 255, 0.04);
-      }
-
-      .crusher-anvil::before {
-        content: '';
-        position: absolute;
-        left: 8%;
-        right: 8%;
-        top: -3px;
-        height: 6px;
-        background: linear-gradient(180deg, #5a6786, #2a3346);
-        border-radius: 4px;
-      }
-
-      .item {
-        position: absolute;
-        left: 50%;
-        top: -90px;
-        transform: translateX(-50%);
-        display: grid;
-        place-items: center;
-        border-radius: 12px;
-        font-size: 2rem;
-        pointer-events: none;
-        will-change: transform, opacity, filter;
-        transition: top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-          transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-          opacity 0.5s ease;
-      }
-
-      .item.drop {
-        /* lands on top of the anvil */
-        top: calc(100% - (14% + 36px + 70px));
-      }
-
-      /* --- Per-object crush animations --- */
-
-      /* Paper: crumple flat with a couple of wrinkles */
-      .item.crush-paper {
-        animation: crush-paper 0.55s cubic-bezier(0.6, 0, 0.4, 1) forwards;
-      }
-      @keyframes crush-paper {
-        0%   { transform: translateX(-50%) scaleY(1)    rotate(0deg); }
-        45%  { transform: translateX(-50%) scaleY(0.55) rotate(-3deg); }
-        70%  { transform: translateX(-50%) scaleY(0.28) rotate(2deg); filter: blur(0.4px); }
-        100% { transform: translateX(-50%) scaleY(0.12) rotate(0deg); opacity: 0.55; filter: blur(1px); }
-      }
-
-      /* Sticky note: crumple into a ball */
-      .item.crush-sticky {
-        animation: crush-sticky 0.65s cubic-bezier(0.5, 0.1, 0.3, 1.2) forwards;
-      }
-      @keyframes crush-sticky {
-        0%   { transform: translateX(-50%) scale(1)    rotate(0deg); border-radius: 8px; }
-        50%  { transform: translateX(-50%) scale(0.55) rotate(-180deg); border-radius: 30%; }
-        100% { transform: translateX(-50%) scale(0.22) rotate(-360deg); border-radius: 50%; opacity: 0.65; }
-      }
-
-      /* Credit card / coupon: split in two halves */
-      .item.split {
-        background: transparent !important;
-        box-shadow: none !important;
-      }
-
-      .half {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: grid;
-        place-items: center;
-        font-size: inherit;
-        background: inherit;
-        border-radius: inherit;
-        will-change: transform, opacity;
-      }
-
-      /* Card: clean snap horizontally (top half tilts up, bottom flips down) */
-      .half.card-top {
-        clip-path: inset(0 0 50% 0);
-        background: var(--half-bg, #79c6ff);
-        border-radius: 8px;
-        animation: card-top 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
-      }
-      .half.card-bottom {
-        clip-path: inset(50% 0 0 0);
-        background: var(--half-bg, #79c6ff);
-        border-radius: 8px;
-        animation: card-bottom 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
-      }
-      @keyframes card-top {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(-30px, 30px) rotate(-28deg); opacity: 0.85; }
-      }
-      @keyframes card-bottom {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(30px, 40px) rotate(26deg); opacity: 0.85; }
-      }
-
-      /* Coupon: jagged tear vertically */
-      .half.coupon-left {
-        clip-path: polygon(0 0, 52% 0, 48% 18%, 54% 35%, 46% 55%, 52% 75%, 48% 100%, 0 100%);
-        background: var(--half-bg, #ffd98a);
-        border-radius: 6px;
-        animation: coupon-left 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
-      }
-      .half.coupon-right {
-        clip-path: polygon(52% 0, 100% 0, 100% 100%, 48% 100%, 52% 75%, 46% 55%, 54% 35%, 48% 18%);
-        background: var(--half-bg, #ffd98a);
-        border-radius: 6px;
-        animation: coupon-right 0.55s cubic-bezier(0.5, 0, 0.4, 1) forwards;
-      }
-      @keyframes coupon-left {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(-46px, 30px) rotate(-22deg); opacity: 0.8; }
-      }
-      @keyframes coupon-right {
-        0%   { transform: translate(0, 0) rotate(0deg); }
-        100% { transform: translate(46px, 36px) rotate(20deg); opacity: 0.8; }
-      }
-
-      /* CD: shatter into many shards */
-      .item.crush-cd {
-        animation: crush-cd 0.4s ease-out forwards;
-      }
-      @keyframes crush-cd {
-        0%   { transform: translateX(-50%) scale(1); }
-        50%  { transform: translateX(-50%) scaleY(0.45); }
-        100% { transform: translateX(-50%) scale(0.1); opacity: 0; }
-      }
-
-      .shard {
-        position: absolute;
-        width: 14px;
-        height: 14px;
-        border-radius: 3px;
-        background: var(--shard-bg, rgba(216, 207, 255, 0.85));
-        box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
-        pointer-events: none;
-        animation: shard-fly 0.9s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
-      }
-      @keyframes shard-fly {
-        from {
-          transform: translate(0, 0) rotate(0deg);
-          opacity: 1;
-        }
-        to {
-          transform: translate(var(--dx), var(--dy)) rotate(var(--rot, 240deg));
-          opacity: 0;
-        }
-      }
-
       .log {
         margin-top: 10px;
         min-height: 1.2em;
@@ -337,36 +106,402 @@
         font-size: 0.9rem;
       }
 
+      /* ============================================================
+         SCENE — industrial hopper + twin-shaft shredder
+         ============================================================ */
+      .scene {
+        position: relative;
+        height: min(72vh, 700px);
+        overflow: hidden;
+        border-radius: 18px;
+        background:
+          radial-gradient(ellipse at 50% 0%, #2c241c 0%, #15110d 65%, #0a0807 100%);
+      }
+
+      /* dusty top light coming in from above */
+      .top-light {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 50% -10%, rgba(255, 200, 140, 0.18), transparent 45%),
+          linear-gradient(180deg, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.55) 100%);
+        pointer-events: none;
+      }
+
+      /* ---- Hopper: trapezoidal worn-steel walls forming a chute ---- */
+      .hopper {
+        position: absolute;
+        left: 6%;
+        right: 6%;
+        top: 6%;
+        bottom: 6%;
+        pointer-events: none;
+      }
+
+      /* back wall (rear of the box) */
+      .hopper-back {
+        position: absolute;
+        left: 14%;
+        right: 14%;
+        top: 0;
+        height: 36%;
+        background:
+          linear-gradient(180deg, #3a342c 0%, #221d18 100%),
+          #2a241e;
+        border: 1px solid rgba(0,0,0,0.5);
+        border-bottom: none;
+        box-shadow:
+          inset 0 0 60px rgba(0,0,0,0.7),
+          inset 0 6px 0 rgba(255,255,255,0.04);
+      }
+      /* scratched / worn texture on the back wall */
+      .hopper-back::before,
+      .hopper-back::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.55;
+      }
+      .hopper-back::before {
+        background:
+          repeating-linear-gradient(95deg,
+            rgba(255,255,255,0.05) 0 1px,
+            transparent 1px 9px),
+          repeating-linear-gradient(170deg,
+            rgba(0,0,0,0.18) 0 1px,
+            transparent 1px 14px);
+        mix-blend-mode: overlay;
+      }
+      .hopper-back::after {
+        background:
+          radial-gradient(ellipse at 30% 40%, rgba(255,170,90,0.18), transparent 45%),
+          radial-gradient(ellipse at 70% 70%, rgba(120,70,30,0.35), transparent 50%),
+          radial-gradient(ellipse at 50% 90%, rgba(0,0,0,0.55), transparent 60%);
+      }
+
+      /* left + right slanted hopper walls (drawn with clip-path) */
+      .hopper-wall {
+        position: absolute;
+        top: 0;
+        height: 78%;
+        width: 60%;
+        background:
+          linear-gradient(135deg, #5a4a3a 0%, #2c2520 55%, #1a1410 100%);
+        box-shadow: inset 0 0 80px rgba(0,0,0,0.65);
+      }
+      .hopper-wall::before {
+        /* rust / wear texture */
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 30% 20%, rgba(255,160,80,0.25), transparent 55%),
+          radial-gradient(ellipse at 70% 80%, rgba(110,60,25,0.5), transparent 60%),
+          repeating-linear-gradient(80deg,
+            rgba(255,255,255,0.04) 0 1px,
+            transparent 1px 7px);
+        mix-blend-mode: overlay;
+        opacity: 0.85;
+      }
+      .hopper-wall::after {
+        /* darker streaks running down the wall */
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          repeating-linear-gradient(180deg,
+            rgba(0,0,0,0.0) 0 22px,
+            rgba(0,0,0,0.18) 22px 24px,
+            rgba(0,0,0,0.0) 24px 60px);
+        opacity: 0.7;
+      }
+
+      .hopper-left {
+        left: 0;
+        clip-path: polygon(0 0, 100% 0, 60% 100%, 0 100%);
+        border-left: 1px solid rgba(255,255,255,0.05);
+      }
+      .hopper-right {
+        right: 0;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 40% 100%);
+        background:
+          linear-gradient(225deg, #5a4a3a 0%, #2c2520 55%, #1a1410 100%);
+        border-right: 1px solid rgba(255,255,255,0.05);
+      }
+
+      /* ---- Twin-shaft shredder mechanism ---- */
+      .shredder {
+        position: absolute;
+        left: 50%;
+        bottom: 18%;
+        transform: translateX(-50%);
+        width: 56%;
+        max-width: 480px;
+        height: 170px;
+        z-index: 3;
+      }
+
+      /* end caps / bearings on either side */
+      .bearing {
+        position: absolute;
+        top: 50%;
+        width: 46px;
+        height: 130px;
+        transform: translateY(-50%);
+        background:
+          linear-gradient(180deg, #4a4239 0%, #1d1814 100%);
+        border: 1px solid rgba(0,0,0,0.6);
+        border-radius: 6px;
+        box-shadow:
+          inset 0 6px 0 rgba(255,255,255,0.05),
+          0 10px 24px rgba(0,0,0,0.55);
+        z-index: 4;
+      }
+      .bearing::before,
+      .bearing::after {
+        /* two bolt / shaft caps */
+        content: '';
+        position: absolute;
+        left: 50%;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        background:
+          radial-gradient(circle at 35% 35%, #8a7b66 0%, #3b332a 55%, #15110d 100%);
+        box-shadow: inset 0 0 0 2px rgba(0,0,0,0.45),
+                    inset 0 2px 4px rgba(255,255,255,0.1);
+      }
+      .bearing::before { top: 22px; }
+      .bearing::after  { bottom: 22px; }
+
+      .bearing-left  { left: -18px; }
+      .bearing-right { right: -18px; }
+
+      /* the two rotating shafts */
+      .shaft {
+        position: absolute;
+        top: 50%;
+        width: calc(100% - 64px);
+        left: 32px;
+        height: 110px;
+        transform: translateY(-50%);
+        border-radius: 10px;
+        background:
+          linear-gradient(180deg, #3a3229 0%, #15110d 50%, #2a2520 100%);
+        box-shadow:
+          inset 0 4px 8px rgba(255,255,255,0.05),
+          inset 0 -8px 14px rgba(0,0,0,0.7),
+          0 6px 14px rgba(0,0,0,0.6);
+      }
+
+      /* hooked shredder teeth — drawn as a row of beveled blocks */
+      .teeth {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 10px;
+      }
+      .tooth {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 36px;
+        background:
+          linear-gradient(180deg, #54493d 0%, #1a1611 55%, #3a322a 100%);
+        clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+        border-left: 1px solid rgba(0,0,0,0.55);
+        box-shadow: inset -2px 0 0 rgba(255,255,255,0.05);
+      }
+      .tooth::after {
+        /* hooked tip highlight */
+        content: '';
+        position: absolute;
+        top: 35%;
+        right: -4px;
+        width: 14px;
+        height: 30%;
+        background: linear-gradient(180deg, #8a7a64, #2a2018);
+        clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 70%);
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+      }
+
+      .shaft-top    { top: 8%; }
+      .shaft-bottom { top: auto; bottom: 8%; }
+
+      /* spin animations — counter-rotating via background scrolling of teeth */
+      .shaft-top .teeth    { animation: rollLeft  1.6s linear infinite; }
+      .shaft-bottom .teeth { animation: rollRight 1.6s linear infinite; }
+
+      @keyframes rollLeft {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-72px); }
+      }
+      @keyframes rollRight {
+        from { transform: translateX(0); }
+        to   { transform: translateX(72px); }
+      }
+
+      /* the dark gap / throat between the two shafts (where stuff gets eaten) */
+      .throat {
+        position: absolute;
+        left: 32px;
+        right: 32px;
+        top: 50%;
+        height: 18px;
+        transform: translateY(-50%);
+        background: radial-gradient(ellipse at center, #000 60%, transparent 100%);
+        z-index: 5;
+        pointer-events: none;
+        box-shadow: 0 0 18px rgba(0,0,0,0.9);
+      }
+
+      /* small sparks/dust bursting from the throat on impact */
+      .spark {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--spark-color, #ffb060);
+        box-shadow: 0 0 8px var(--spark-color, #ffb060);
+        pointer-events: none;
+        animation: spark-fly 0.7s ease-out forwards;
+      }
+      @keyframes spark-fly {
+        from { transform: translate(0,0) scale(1); opacity: 1; }
+        to   { transform: translate(var(--dx), var(--dy)) scale(0.4); opacity: 0; }
+      }
+
+      /* ---- Items dropped into the hopper ---- */
+      .item {
+        position: absolute;
+        left: 50%;
+        top: -90px;
+        transform: translateX(-50%);
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        font-size: 2rem;
+        pointer-events: none;
+        z-index: 2;
+        will-change: transform, top, opacity;
+        transition:
+          top 0.55s cubic-bezier(0.45, 0.1, 0.6, 1),
+          transform 0.55s cubic-bezier(0.45, 0.1, 0.6, 1);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+      }
+
+      /* lands on top of the rollers */
+      .item.drop {
+        top: calc(82% - 170px - 18px);
+      }
+
+      /* once gripped, item is pulled into the throat and squeezed thin */
+      .item.feed {
+        animation: feed-in 0.55s cubic-bezier(0.6, 0, 0.4, 1) forwards;
+      }
+      @keyframes feed-in {
+        0%   { transform: translateX(-50%) scaleY(1)   rotate(0deg); }
+        60%  { transform: translateX(-50%) scaleY(0.45) rotate(-2deg); }
+        100% {
+          top: calc(82% - 85px);
+          transform: translateX(-50%) scaleY(0.08) rotate(0deg);
+          opacity: 0;
+        }
+      }
+
+      /* shredded fragments that fall out below the rollers */
+      .frag {
+        position: absolute;
+        background: var(--frag-bg, #ccc);
+        pointer-events: none;
+        z-index: 1;
+        animation: frag-fall 1.1s cubic-bezier(0.3, 0.6, 0.5, 1) forwards;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      }
+      @keyframes frag-fall {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+          opacity: 0;
+        }
+      }
+
+      /* pile of shred at the bottom of the bin (subtle) */
+      .floor {
+        position: absolute;
+        left: 6%;
+        right: 6%;
+        bottom: 0;
+        height: 18%;
+        background:
+          linear-gradient(180deg, #1a140f 0%, #0a0807 100%);
+        box-shadow: inset 0 18px 30px rgba(0,0,0,0.8);
+      }
+      .floor::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.7), transparent 60%);
+      }
+
       @media (max-width: 900px) {
-        .app {
-          grid-template-columns: 1fr;
-        }
-        .scene {
-          height: min(55vh, 500px);
-        }
+        .app { grid-template-columns: 1fr; }
+        .scene { height: min(58vh, 520px); }
+        .shredder { width: 72%; height: 140px; }
+        .bearing { height: 110px; }
+        .shaft { height: 92px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .shaft-top .teeth, .shaft-bottom .teeth { animation: none; }
       }
     </style>
   </head>
   <body>
     <main class="app">
       <section class="controls card">
-        <h1>Crusher Simulator</h1>
-        <p class="hint">Click an object to send it straight under the press — no confirmation needed.</p>
+        <h1>Industrial Shredder</h1>
+        <p class="hint">Click an item to drop it into the hopper. The twin rotating shafts will do the rest.</p>
         <div class="item-list" id="itemList"></div>
         <div class="meta">
-          <strong id="counter">Crushed: 0</strong>
+          <strong id="counter">Shredded: 0</strong>
         </div>
         <p class="log" id="log" aria-live="polite"></p>
       </section>
 
       <section class="scene card" id="scene">
         <div class="top-light"></div>
-        <div class="crusher">
-          <div class="crusher-frame-left"></div>
-          <div class="crusher-frame-right"></div>
-          <div class="crusher-press" id="crusherPress"></div>
-          <div class="crusher-anvil"></div>
+
+        <!-- Worn steel hopper walls -->
+        <div class="hopper">
+          <div class="hopper-back"></div>
+          <div class="hopper-wall hopper-left"></div>
+          <div class="hopper-wall hopper-right"></div>
         </div>
+
+        <!-- Twin-shaft shredder mechanism -->
+        <div class="shredder" id="shredder">
+          <div class="bearing bearing-left"></div>
+          <div class="bearing bearing-right"></div>
+
+          <div class="shaft shaft-top">
+            <div class="teeth" id="teethTop"></div>
+          </div>
+          <div class="shaft shaft-bottom">
+            <div class="teeth" id="teethBottom"></div>
+          </div>
+
+          <div class="throat"></div>
+        </div>
+
+        <!-- Dark floor / debris area -->
+        <div class="floor"></div>
       </section>
     </main>
 
@@ -381,12 +516,25 @@
 
       const itemList = document.getElementById('itemList');
       const scene = document.getElementById('scene');
-      const press = document.getElementById('crusherPress');
+      const teethTop = document.getElementById('teethTop');
+      const teethBottom = document.getElementById('teethBottom');
       const log = document.getElementById('log');
       const counter = document.getElementById('counter');
 
       let crushing = false;
       let crushedTotal = 0;
+
+      // Build the row of teeth on each shaft. We render twice the width and
+      // slide it under the shaft to fake continuous rotation.
+      function buildTeeth(container, count = 22) {
+        container.innerHTML = '';
+        for (let i = 0; i < count; i += 1) {
+          const t = document.createElement('span');
+          t.className = 'tooth';
+          t.style.left = `${i * 36}px`;
+          container.appendChild(t);
+        }
+      }
 
       function renderItems() {
         itemList.innerHTML = '';
@@ -400,21 +548,37 @@
         });
       }
 
-      function createShards(x, y, color, count = 14) {
+      function createSparks(x, y, count = 12) {
+        const colors = ['#ffb060', '#ffe49a', '#ff7a3a'];
         for (let i = 0; i < count; i += 1) {
-          const shard = document.createElement('span');
-          shard.className = 'shard';
-          shard.style.left = `${x}px`;
-          shard.style.top = `${y}px`;
-          shard.style.setProperty('--shard-bg', color);
-          shard.style.setProperty('--dx', `${(Math.random() - 0.5) * 320}px`);
-          shard.style.setProperty('--dy', `${60 + Math.random() * 180}px`);
-          shard.style.setProperty('--rot', `${(Math.random() - 0.5) * 720}deg`);
-          const size = 6 + Math.random() * 10;
-          shard.style.width = `${size}px`;
-          shard.style.height = `${size}px`;
-          scene.appendChild(shard);
-          shard.addEventListener('animationend', () => shard.remove(), { once: true });
+          const s = document.createElement('span');
+          s.className = 'spark';
+          s.style.left = `${x}px`;
+          s.style.top = `${y}px`;
+          s.style.setProperty('--spark-color', colors[i % colors.length]);
+          s.style.setProperty('--dx', `${(Math.random() - 0.5) * 220}px`);
+          s.style.setProperty('--dy', `${30 + Math.random() * 90}px`);
+          scene.appendChild(s);
+          s.addEventListener('animationend', () => s.remove(), { once: true });
+        }
+      }
+
+      function createFragments(x, y, color, count = 14) {
+        for (let i = 0; i < count; i += 1) {
+          const f = document.createElement('span');
+          f.className = 'frag';
+          const w = 4 + Math.random() * 6;
+          const h = 14 + Math.random() * 26;
+          f.style.width = `${w}px`;
+          f.style.height = `${h}px`;
+          f.style.left = `${x + (Math.random() - 0.5) * 220}px`;
+          f.style.top = `${y}px`;
+          f.style.setProperty('--frag-bg', color);
+          f.style.setProperty('--dx', `${(Math.random() - 0.5) * 80}px`);
+          f.style.setProperty('--dy', `${80 + Math.random() * 140}px`);
+          f.style.setProperty('--rot', `${(Math.random() - 0.5) * 220}deg`);
+          scene.appendChild(f);
+          f.addEventListener('animationend', () => f.remove(), { once: true });
         }
       }
 
@@ -425,59 +589,8 @@
         el.style.background = def.color;
         el.style.width = '110px';
         el.style.height = '72px';
-
-        // Default: just the emoji label
-        if (def.id !== 'card' && def.id !== 'coupon') {
-          el.textContent = def.emoji;
-        } else {
-          // Pre-build halves so we can switch to a split animation on impact
-          const top = document.createElement('span');
-          const bottom = document.createElement('span');
-          top.className = def.id === 'card' ? 'half card-top'    : 'half coupon-left';
-          bottom.className = def.id === 'card' ? 'half card-bottom' : 'half coupon-right';
-          top.style.setProperty('--half-bg', def.color);
-          bottom.style.setProperty('--half-bg', def.color);
-          // Show the emoji on each half (clipped to top/bottom or left/right)
-          top.textContent = def.emoji;
-          bottom.textContent = def.emoji;
-          // Until impact, halves should not yet animate apart — pause animations.
-          top.style.animationPlayState = 'paused';
-          bottom.style.animationPlayState = 'paused';
-          el.appendChild(top);
-          el.appendChild(bottom);
-        }
+        el.textContent = def.emoji;
         return el;
-      }
-
-      function applyCrush(itemEl, def) {
-        switch (def.id) {
-          case 'paper':
-            itemEl.classList.add('crush-paper');
-            break;
-          case 'sticky':
-            itemEl.classList.add('crush-sticky');
-            break;
-          case 'card':
-          case 'coupon':
-            itemEl.classList.add('split');
-            // Resume the paused half animations to perform the snap/tear.
-            itemEl.querySelectorAll('.half').forEach((h) => {
-              h.style.animationPlayState = 'running';
-            });
-            break;
-          case 'cd': {
-            itemEl.classList.add('crush-cd');
-            const bounds = itemEl.getBoundingClientRect();
-            const sceneBounds = scene.getBoundingClientRect();
-            createShards(
-              bounds.left - sceneBounds.left + bounds.width / 2,
-              bounds.top - sceneBounds.top + bounds.height / 2,
-              def.color,
-              22
-            );
-            break;
-          }
-        }
       }
 
       function crushItem(def, button) {
@@ -487,36 +600,45 @@
 
         const item = buildItemElement(def);
         scene.appendChild(item);
+        // drop into the hopper
         requestAnimationFrame(() => item.classList.add('drop'));
 
-        // Drop, then bring down the press to crush on impact.
+        // Item lands on the rollers and gets gripped → fed through the throat
         setTimeout(() => {
-          press.classList.add('smash');
-        }, 480);
+          item.classList.add('feed');
 
-        // Press meets the object: trigger per-object crush animation.
+          // Sparks at the throat where it gets bitten
+          const sceneBounds = scene.getBoundingClientRect();
+          const itemBounds = item.getBoundingClientRect();
+          const x = itemBounds.left - sceneBounds.left + itemBounds.width / 2;
+          const y = itemBounds.top  - sceneBounds.top  + itemBounds.height / 2;
+          createSparks(x, y, def.id === 'cd' ? 18 : 10);
+        }, 600);
+
+        // Fragments emerge below the rollers
         setTimeout(() => {
-          applyCrush(item, def);
+          const sceneBounds = scene.getBoundingClientRect();
+          const fragX = sceneBounds.width / 2;
+          const fragY = sceneBounds.height * 0.82; // just under the rollers
+          createFragments(fragX, fragY, def.color, def.id === 'cd' ? 22 : 14);
+
           crushedTotal += 1;
-          counter.textContent = `Crushed: ${crushedTotal}`;
-          log.textContent = `${def.name} crushed ✨`;
-        }, 660);
+          counter.textContent = `Shredded: ${crushedTotal}`;
+          log.textContent = `${def.name} shredded ✦`;
+        }, 1050);
 
-        // Retract press.
-        setTimeout(() => {
-          press.classList.remove('smash');
-        }, 980);
-
-        // Cleanup.
+        // Cleanup
         setTimeout(() => {
           item.remove();
           if (button) button.classList.remove('active');
           crushing = false;
-        }, 1500);
+        }, 1700);
       }
 
+      buildTeeth(teethTop);
+      buildTeeth(teethBottom);
       renderItems();
-      log.textContent = 'Pick an object to crush.';
+      log.textContent = 'Pick an item to shred.';
     </script>
   </body>
 </html>
