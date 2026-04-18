@@ -275,7 +275,7 @@
         items.forEach((item) => {
           const button = document.createElement('button');
           button.type = 'button';
-          button.className = `item-btn${selected.name === item.name ? ' active' : ''}`;
+          button.className = `item-btn${selected === item ? ' active' : ''}`;
           button.textContent = `${item.emoji} ${item.name}`;
           button.addEventListener('click', () => {
             selected = item;
