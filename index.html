@@ -693,11 +693,51 @@
     <script>
       /* Accent colors tint each item's gradient and the shredded fragments it creates. */
       const items = [
-        { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb', accent: '#9ad7ff', shredIntensity: 1 },
-        { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff', accent: '#ffdf6e', shredIntensity: 1 },
-        { id: 'coupon', name: 'Expired Coupon',  emoji: '🎟️', color: '#ffd98a', accent: '#ff7a8a', shredIntensity: 1 },
-        { id: 'sticky', name: 'Sticky Note',     emoji: '🗒️', color: '#ffe66d', accent: '#8cffc1', shredIntensity: 1 },
-        { id: 'cd',     name: 'CD Disk',         emoji: '💿', color: '#d8cfff', accent: '#8df7ff', shredIntensity: 1.55 }
+        {
+          id: 'paper',
+          name: 'Paper Stack',
+          emoji: '📄',
+          color: '#f6f7fb',
+          accent: '#9ad7ff',
+          effectMultiplier: 1,
+          visualStyle: 'card'
+        },
+        {
+          id: 'card',
+          name: 'Old Credit Card',
+          emoji: '💳',
+          color: '#79c6ff',
+          accent: '#ffdf6e',
+          effectMultiplier: 1,
+          visualStyle: 'card'
+        },
+        {
+          id: 'coupon',
+          name: 'Expired Coupon',
+          emoji: '🎟️',
+          color: '#ffd98a',
+          accent: '#ff7a8a',
+          effectMultiplier: 1,
+          visualStyle: 'card'
+        },
+        {
+          id: 'sticky',
+          name: 'Sticky Note',
+          emoji: '🗒️',
+          color: '#ffe66d',
+          accent: '#8cffc1',
+          effectMultiplier: 1,
+          visualStyle: 'card'
+        },
+        {
+          id: 'cd',
+          name: 'CD Disk',
+          emoji: '💿',
+          color: '#d8cfff',
+          accent: '#8df7ff',
+          effectMultiplier: 1.55,
+          visualStyle: 'disc'
+        }
       ];
 
       const itemList = document.getElementById('itemList');
@@ -711,15 +751,15 @@
       let crushedTotal = 0;
       const pilePieces = [];
       const activeBurstTimers = [];
-      /* Keep the persistent debris pile dense without letting DOM nodes grow forever. */
+      /* 46 pieces keeps the floor looking full while limiting long-session DOM growth. */
       const maxPilePieces = 46;
       const burstConfig = {
-        iterations: 4,
-        intervalMs: 150,
-        horizontalJitter: 18,
-        verticalJitterMin: 22,
-        verticalJitterMax: 42,
-        scale: 0.82
+        iterations: 4,          // short repeated bursts while the item is visibly gripped
+        intervalMs: 150,        // quick cadence for a continuous shred stream
+        horizontalJitter: 18,   // px variation so particles do not emerge in a straight line
+        verticalJitterMin: 22,  // px below the bite point
+        verticalJitterMax: 42,  // px below the bite point
+        scale: 0.82             // smaller than the final dump burst
       };
 
       function randomBetween(min, max) {
@@ -731,7 +771,7 @@
       }
 
       function effectCount(def, baseCount) {
-        return Math.round(baseCount * def.shredIntensity);
+        return Math.round(baseCount * def.effectMultiplier);
       }
 
       function createAmbientMotes(count = 24) {
@@ -878,7 +918,7 @@
         el.style.border = '1px solid rgba(255,255,255,0.35)';
         el.style.width = '110px';
         el.style.height = '72px';
-        if (def.id === 'cd') {
+        if (def.visualStyle === 'disc') {
           const cdVisuals = {
             coreColor: '#342d3d',
             shineColor: '#fff7b0',
@@ -964,7 +1004,7 @@
         setTimeout(() => {
           item.remove();
           activeBurstTimers.forEach((timer) => clearInterval(timer));
-          activeBurstTimers.length = 0;
+          activeBurstTimers.splice(0);
           if (button) button.classList.remove('active');
           scene.classList.remove('shredding');
           crushing = false;
