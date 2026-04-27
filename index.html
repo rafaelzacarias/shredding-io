@@ -689,6 +689,7 @@
     </main>
 
     <script>
+      // Accent colors tint each item's gradient and the shredded fragments it creates.
       const items = [
         { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb', accent: '#9ad7ff' },
         { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff', accent: '#ffdf6e' },
@@ -707,6 +708,7 @@
       let crushing = false;
       let crushedTotal = 0;
       const pilePieces = [];
+      const maxPilePieces = 46;
 
       function randomBetween(min, max) {
         return min + Math.random() * (max - min);
@@ -846,7 +848,7 @@
           pilePieces.push(piece);
         }
 
-        while (pilePieces.length > 46) {
+        while (pilePieces.length > maxPilePieces) {
           const oldPiece = pilePieces.shift();
           if (oldPiece) oldPiece.remove();
         }
