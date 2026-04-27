@@ -693,11 +693,11 @@
     <script>
       /* Accent colors tint each item's gradient and the shredded fragments it creates. */
       const items = [
-        { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb', accent: '#9ad7ff' },
-        { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff', accent: '#ffdf6e' },
-        { id: 'coupon', name: 'Expired Coupon',  emoji: '🎟️', color: '#ffd98a', accent: '#ff7a8a' },
-        { id: 'sticky', name: 'Sticky Note',     emoji: '🗒️', color: '#ffe66d', accent: '#8cffc1' },
-        { id: 'cd',     name: 'CD Disk',         emoji: '💿', color: '#d8cfff', accent: '#8df7ff' }
+        { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb', accent: '#9ad7ff', shredIntensity: 1 },
+        { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff', accent: '#ffdf6e', shredIntensity: 1 },
+        { id: 'coupon', name: 'Expired Coupon',  emoji: '🎟️', color: '#ffd98a', accent: '#ff7a8a', shredIntensity: 1 },
+        { id: 'sticky', name: 'Sticky Note',     emoji: '🗒️', color: '#ffe66d', accent: '#8cffc1', shredIntensity: 1 },
+        { id: 'cd',     name: 'CD Disk',         emoji: '💿', color: '#d8cfff', accent: '#8df7ff', shredIntensity: 1.55 }
       ];
 
       const itemList = document.getElementById('itemList');
@@ -728,6 +728,10 @@
 
       function fragmentColors(def) {
         return [def.color, def.accent, '#fff1bf', '#ff8a3d'];
+      }
+
+      function effectCount(def, baseCount) {
+        return Math.round(baseCount * def.shredIntensity);
       }
 
       function createAmbientMotes(count = 24) {
@@ -840,9 +844,9 @@
       }
 
       function shredBurst(def, x, y, scale = 1) {
-        createRibbons(x, y, def, Math.round((def.id === 'cd' ? 10 : 7) * scale));
-        createFragments(x, y, def, Math.round((def.id === 'cd' ? 10 : 6) * scale));
-        createDust(x, y, Math.round((def.id === 'cd' ? 9 : 6) * scale));
+        createRibbons(x, y, def, Math.round(effectCount(def, 7) * scale));
+        createFragments(x, y, def, Math.round(effectCount(def, 6) * scale));
+        createDust(x, y, Math.round(effectCount(def, 6) * scale));
       }
 
       function addPilePieces(def, count = 5) {
@@ -920,7 +924,7 @@
           const itemBounds = item.getBoundingClientRect();
           const x = itemBounds.left - sceneBounds.left + itemBounds.width / 2;
           const y = itemBounds.top  - sceneBounds.top  + itemBounds.height / 2;
-          createSparks(x, y, def.id === 'cd' ? 18 : 10);
+          createSparks(x, y, effectCount(def, 10));
           createDust(x, y, 12);
           let burstCount = 0;
           const burstTimer = setInterval(() => {
@@ -931,7 +935,7 @@
               y + randomBetween(burstConfig.verticalJitterMin, burstConfig.verticalJitterMax),
               burstConfig.scale
             );
-            createSparks(x, y, def.id === 'cd' ? 8 : 5);
+            createSparks(x, y, effectCount(def, 5));
             if (burstCount >= burstConfig.iterations) {
               clearInterval(burstTimer);
               const timerIndex = activeBurstTimers.indexOf(burstTimer);
@@ -946,10 +950,10 @@
           const sceneBounds = scene.getBoundingClientRect();
           const fragX = sceneBounds.width / 2;
           const fragY = sceneBounds.height * 0.72; // falling from under the rollers
-          createRibbons(fragX, fragY, def, def.id === 'cd' ? 34 : 24);
-          createFragments(fragX, fragY, def, def.id === 'cd' ? 34 : 22);
-          createDust(fragX, fragY, def.id === 'cd' ? 28 : 20);
-          addPilePieces(def, def.id === 'cd' ? 7 : 5);
+          createRibbons(fragX, fragY, def, effectCount(def, 24));
+          createFragments(fragX, fragY, def, effectCount(def, 22));
+          createDust(fragX, fragY, effectCount(def, 20));
+          addPilePieces(def, effectCount(def, 5));
 
           crushedTotal += 1;
           counter.textContent = `Shredded: ${crushedTotal}`;
