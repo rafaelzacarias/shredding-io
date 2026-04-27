@@ -691,7 +691,7 @@
     </main>
 
     <script>
-      // Accent colors tint each item's gradient and the shredded fragments it creates.
+      /* Accent colors tint each item's gradient and the shredded fragments it creates. */
       const items = [
         { id: 'paper',  name: 'Paper Stack',     emoji: '📄', color: '#f6f7fb', accent: '#9ad7ff' },
         { id: 'card',   name: 'Old Credit Card', emoji: '💳', color: '#79c6ff', accent: '#ffdf6e' },
@@ -710,7 +710,8 @@
       let crushing = false;
       let crushedTotal = 0;
       const pilePieces = [];
-      // Keep the persistent debris pile dense without letting DOM nodes grow forever.
+      const activeBurstTimers = [];
+      /* Keep the persistent debris pile dense without letting DOM nodes grow forever. */
       const maxPilePieces = 46;
       const burstConfig = {
         iterations: 4,
@@ -719,13 +720,6 @@
         verticalJitterMin: 22,
         verticalJitterMax: 42,
         scale: 0.82
-      };
-      const cdVisuals = {
-        coreColor: '#342d3d',
-        shineColor: '#fff7b0',
-        coreStop: '12%',
-        coreFadeStop: '13%',
-        gradientStart: '120deg'
       };
 
       function randomBetween(min, max) {
@@ -881,8 +875,26 @@
         el.style.width = '110px';
         el.style.height = '72px';
         if (def.id === 'cd') {
+          const cdVisuals = {
+            coreColor: '#342d3d',
+            shineColor: '#fff7b0',
+            coreStop: '12%',
+            coreFadeStop: '13%',
+            gradientStart: '120deg'
+          };
+          const cdCore = [
+            `radial-gradient(circle at center, ${cdVisuals.coreColor} 0 ${cdVisuals.coreStop}`,
+            `transparent ${cdVisuals.coreFadeStop})`
+          ].join(', ');
+          const cdSurface = [
+            `conic-gradient(from ${cdVisuals.gradientStart}`,
+            def.color,
+            def.accent,
+            cdVisuals.shineColor,
+            `${def.color})`
+          ].join(', ');
           el.style.borderRadius = '50%';
-          el.style.background = `radial-gradient(circle at center, ${cdVisuals.coreColor} 0 ${cdVisuals.coreStop}, transparent ${cdVisuals.coreFadeStop}), conic-gradient(from ${cdVisuals.gradientStart}, ${def.color}, ${def.accent}, ${cdVisuals.shineColor}, ${def.color})`;
+          el.style.background = `${cdCore}, ${cdSurface}`;
         }
         el.textContent = def.emoji;
         return el;
@@ -920,8 +932,13 @@
               burstConfig.scale
             );
             createSparks(x, y, def.id === 'cd' ? 8 : 5);
-            if (burstCount >= burstConfig.iterations) clearInterval(burstTimer);
+            if (burstCount >= burstConfig.iterations) {
+              clearInterval(burstTimer);
+              const timerIndex = activeBurstTimers.indexOf(burstTimer);
+              if (timerIndex !== -1) activeBurstTimers.splice(timerIndex, 1);
+            }
           }, burstConfig.intervalMs);
+          activeBurstTimers.push(burstTimer);
         }, 600);
 
         // Fragments emerge below the rollers
@@ -942,6 +959,8 @@
         // Cleanup
         setTimeout(() => {
           item.remove();
+          activeBurstTimers.forEach((timer) => clearInterval(timer));
+          activeBurstTimers.length = 0;
           if (button) button.classList.remove('active');
           scene.classList.remove('shredding');
           crushing = false;
