@@ -18,7 +18,8 @@
         --steel-3: #1a1714;
         --rust-1: #8a5a30;
         --rust-2: #5a3a1f;
-        --throat-swallow-offset: 85px;
+        --shredder-intake-position: 82%;
+        --item-feed-end-offset: 85px;
       }
 
       * { box-sizing: border-box; }
@@ -528,7 +529,7 @@
 
       /* lands on top of the rollers */
       .item.drop {
-        top: calc(82% - 170px - 18px);
+        top: calc(var(--shredder-intake-position) - 170px - 18px);
       }
 
       /* once gripped, item is pulled into the throat and squeezed thin */
@@ -540,7 +541,7 @@
         35%  { transform: translateX(-50%) scaleY(0.72) scaleX(1.08) rotate(5deg); filter: brightness(1.25); }
         60%  { transform: translateX(-50%) scaleY(0.45) scaleX(1.18) rotate(-4deg); filter: brightness(1.4); }
         100% {
-          top: calc(82% - var(--throat-swallow-offset));
+          top: calc(var(--shredder-intake-position) - var(--item-feed-end-offset));
           transform: translateX(-50%) scaleY(0.05) scaleX(1.32) rotate(0deg);
           opacity: 0;
           filter: brightness(1.7);
@@ -711,17 +712,21 @@
       const pilePieces = [];
       // Keep the persistent debris pile dense without letting DOM nodes grow forever.
       const maxPilePieces = 46;
-      const burstIterations = 4;
-      const burstIntervalMs = 150;
-      const burstHorizontalJitter = 18;
-      const burstVerticalJitterMin = 22;
-      const burstVerticalJitterMax = 42;
-      const burstScale = 0.82;
-      const cdCoreColor = '#342d3d';
-      const cdShineColor = '#fff7b0';
-      const cdCoreStop = '12%';
-      const cdCoreFadeStop = '13%';
-      const cdGradientStart = '120deg';
+      const burstConfig = {
+        iterations: 4,
+        intervalMs: 150,
+        horizontalJitter: 18,
+        verticalJitterMin: 22,
+        verticalJitterMax: 42,
+        scale: 0.82
+      };
+      const cdVisuals = {
+        coreColor: '#342d3d',
+        shineColor: '#fff7b0',
+        coreStop: '12%',
+        coreFadeStop: '13%',
+        gradientStart: '120deg'
+      };
 
       function randomBetween(min, max) {
         return min + Math.random() * (max - min);
@@ -877,7 +882,7 @@
         el.style.height = '72px';
         if (def.id === 'cd') {
           el.style.borderRadius = '50%';
-          el.style.background = `radial-gradient(circle at center, ${cdCoreColor} 0 ${cdCoreStop}, transparent ${cdCoreFadeStop}), conic-gradient(from ${cdGradientStart}, ${def.color}, ${def.accent}, ${cdShineColor}, ${def.color})`;
+          el.style.background = `radial-gradient(circle at center, ${cdVisuals.coreColor} 0 ${cdVisuals.coreStop}, transparent ${cdVisuals.coreFadeStop}), conic-gradient(from ${cdVisuals.gradientStart}, ${def.color}, ${def.accent}, ${cdVisuals.shineColor}, ${def.color})`;
         }
         el.textContent = def.emoji;
         return el;
@@ -910,13 +915,13 @@
             burstCount += 1;
             shredBurst(
               def,
-              x + randomBetween(-burstHorizontalJitter, burstHorizontalJitter),
-              y + randomBetween(burstVerticalJitterMin, burstVerticalJitterMax),
-              burstScale
+              x + randomBetween(-burstConfig.horizontalJitter, burstConfig.horizontalJitter),
+              y + randomBetween(burstConfig.verticalJitterMin, burstConfig.verticalJitterMax),
+              burstConfig.scale
             );
             createSparks(x, y, def.id === 'cd' ? 8 : 5);
-            if (burstCount >= burstIterations) clearInterval(burstTimer);
-          }, burstIntervalMs);
+            if (burstCount >= burstConfig.iterations) clearInterval(burstTimer);
+          }, burstConfig.intervalMs);
         }, 600);
 
         // Fragments emerge below the rollers
