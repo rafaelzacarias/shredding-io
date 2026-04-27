@@ -750,7 +750,6 @@
       let crushing = false;
       let crushedTotal = 0;
       const pilePieces = [];
-      const activeBurstTimers = [];
       /* 46 pieces keeps the floor looking full while limiting long-session DOM growth. */
       const maxPilePieces = 46;
       const burstConfig = {
@@ -906,7 +905,7 @@
 
         while (pilePieces.length > maxPilePieces) {
           const oldPiece = pilePieces.shift();
-          if (oldPiece) oldPiece.remove();
+          oldPiece.remove();
         }
       }
 
@@ -951,6 +950,7 @@
         if (button) button.classList.add('active');
 
         const item = buildItemElement(def);
+        const activeBurstTimers = [];
         scene.appendChild(item);
         // drop into the hopper
         requestAnimationFrame(() => item.classList.add('drop'));
