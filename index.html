@@ -18,6 +18,7 @@
         --steel-3: #1a1714;
         --rust-1: #8a5a30;
         --rust-2: #5a3a1f;
+        --throat-swallow-offset: 85px;
       }
 
       * { box-sizing: border-box; }
@@ -539,7 +540,7 @@
         35%  { transform: translateX(-50%) scaleY(0.72) scaleX(1.08) rotate(5deg); filter: brightness(1.25); }
         60%  { transform: translateX(-50%) scaleY(0.45) scaleX(1.18) rotate(-4deg); filter: brightness(1.4); }
         100% {
-          top: calc(82% - 85px);
+          top: calc(82% - var(--throat-swallow-offset));
           transform: translateX(-50%) scaleY(0.05) scaleX(1.32) rotate(0deg);
           opacity: 0;
           filter: brightness(1.7);
@@ -708,7 +709,19 @@
       let crushing = false;
       let crushedTotal = 0;
       const pilePieces = [];
+      // Keep the persistent debris pile dense without letting DOM nodes grow forever.
       const maxPilePieces = 46;
+      const burstIterations = 4;
+      const burstIntervalMs = 150;
+      const burstHorizontalJitter = 18;
+      const burstVerticalJitterMin = 22;
+      const burstVerticalJitterMax = 42;
+      const burstScale = 0.82;
+      const cdCoreColor = '#342d3d';
+      const cdShineColor = '#fff7b0';
+      const cdCoreStop = '12%';
+      const cdCoreFadeStop = '13%';
+      const cdGradientStart = '120deg';
 
       function randomBetween(min, max) {
         return min + Math.random() * (max - min);
@@ -864,7 +877,7 @@
         el.style.height = '72px';
         if (def.id === 'cd') {
           el.style.borderRadius = '50%';
-          el.style.background = `radial-gradient(circle at center, #342d3d 0 12%, transparent 13%), conic-gradient(from 120deg, ${def.color}, ${def.accent}, #fff7b0, ${def.color})`;
+          el.style.background = `radial-gradient(circle at center, ${cdCoreColor} 0 ${cdCoreStop}, transparent ${cdCoreFadeStop}), conic-gradient(from ${cdGradientStart}, ${def.color}, ${def.accent}, ${cdShineColor}, ${def.color})`;
         }
         el.textContent = def.emoji;
         return el;
@@ -895,10 +908,15 @@
           let burstCount = 0;
           const burstTimer = setInterval(() => {
             burstCount += 1;
-            shredBurst(def, x + randomBetween(-18, 18), y + randomBetween(22, 42), 0.82);
+            shredBurst(
+              def,
+              x + randomBetween(-burstHorizontalJitter, burstHorizontalJitter),
+              y + randomBetween(burstVerticalJitterMin, burstVerticalJitterMax),
+              burstScale
+            );
             createSparks(x, y, def.id === 'cd' ? 8 : 5);
-            if (burstCount >= 4) clearInterval(burstTimer);
-          }, 150);
+            if (burstCount >= burstIterations) clearInterval(burstTimer);
+          }, burstIntervalMs);
         }, 600);
 
         // Fragments emerge below the rollers
