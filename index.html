@@ -1076,6 +1076,21 @@
       const itemsPerLevel = 10;
       const comboTimeoutMs = 5000;
       const powerModeVibrationPattern = [25, 20, 35];
+      const throwConfig = {
+        sampleWindowMs: 110,
+        dragThresholdPx: 7,
+        maxSamples: 8,
+        ghostRotationScale: 0.22,
+        maxGhostAngle: 35
+      };
+      const flightConfig = {
+        horizontalMomentum: 150,
+        landingMin: 0.32,
+        landingMax: 0.68,
+        baseDurationMs: 760,
+        speedDurationFactor: 155,
+        minDurationMs: 430
+      };
 
       let crushing = false;
       let crushedTotal = 0;
@@ -1267,7 +1282,9 @@
           event.preventDefault();
           button.dataset.skipClick = 'true';
           requestAnimationFrame(() => delete button.dataset.skipClick);
-          const recent = current.samples.filter((sample) => event.timeStamp - sample.time < 110);
+          const recent = current.samples.filter(
+            (sample) => event.timeStamp - sample.time < throwConfig.sampleWindowMs
+          );
           const first = recent[0] || current.samples[0];
           const elapsed = Math.max(16, event.timeStamp - first.time);
           const bounds = scene.getBoundingClientRect();
@@ -1295,7 +1312,7 @@
         button.addEventListener('pointermove', (event) => {
           if (!gesture || event.pointerId !== gesture.pointerId) return;
           const distance = Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY);
-          if (!gesture.dragging && distance > 7) {
+          if (!gesture.dragging && distance > throwConfig.dragThresholdPx) {
             gesture.dragging = true;
             gesture.ghost = document.createElement('div');
             gesture.ghost.className = 'throw-ghost';
@@ -1306,10 +1323,15 @@
           if (!gesture.dragging) return;
           event.preventDefault();
           gesture.samples.push({ x: event.clientX, y: event.clientY, time: event.timeStamp });
-          gesture.samples = gesture.samples.slice(-8);
+          gesture.samples = gesture.samples.slice(-throwConfig.maxSamples);
           gesture.ghost.style.left = `${event.clientX}px`;
           gesture.ghost.style.top = `${event.clientY}px`;
-          gesture.ghost.style.setProperty('--ghost-angle', `${clamp((event.clientX - gesture.startX) * 0.22, -35, 35)}deg`);
+          const ghostAngle = clamp(
+            (event.clientX - gesture.startX) * throwConfig.ghostRotationScale,
+            -throwConfig.maxGhostAngle,
+            throwConfig.maxGhostAngle
+          );
+          gesture.ghost.style.setProperty('--ghost-angle', `${ghostAngle}deg`);
         });
 
         button.addEventListener('pointerup', (event) => finishGesture(event));
@@ -1454,13 +1476,17 @@
         const startY = clamp(physics.startY ?? -82, -100, bounds.height * 0.58);
         const intakeY = bounds.height * 0.82 - 188;
         const landingX = clamp(
-          startX + physics.vx * 150,
-          bounds.width * 0.32,
-          bounds.width * 0.68
+          startX + physics.vx * flightConfig.horizontalMomentum,
+          bounds.width * flightConfig.landingMin,
+          bounds.width * flightConfig.landingMax
         );
         const dx = landingX - startX;
         const dy = intakeY - startY;
-        const duration = clamp(760 - physics.speed * 155, 430, 760);
+        const duration = clamp(
+          flightConfig.baseDurationMs - physics.speed * flightConfig.speedDurationFactor,
+          flightConfig.minDurationMs,
+          flightConfig.baseDurationMs
+        );
         const lift = clamp(-physics.vy * 85 - 36, -140, 20);
         const spin = clamp(physics.vx * 250, -220, 220);
 
