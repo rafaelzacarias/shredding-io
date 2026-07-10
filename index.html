@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shredding.io — Industrial Shredder Simulator</title>
+    <title>Shredding.io — Unwind, One Crunch at a Time</title>
     <style>
       :root {
         color-scheme: dark;
         --bg: #0e0d0b;
         --panel: rgba(28, 24, 20, 0.86);
-        --accent: #ff8a3d;          /* rust / hot-metal orange */
+        --accent: #ff9d52;
         --accent-soft: rgba(255, 138, 61, 0.32);
         --text: #f1ece2;
         --muted: #b6a999;
@@ -35,13 +35,13 @@
           var(--bg);
         font-family: Inter, Segoe UI, Roboto, sans-serif;
         color: var(--text);
-        overflow: hidden;
+        overflow-x: hidden;
       }
 
       .app {
-        width: min(1020px, 95vw);
+        width: min(1120px, 95vw);
         display: grid;
-        grid-template-columns: 300px 1fr;
+        grid-template-columns: 330px 1fr;
         gap: 18px;
       }
 
@@ -53,7 +53,12 @@
         box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
       }
 
-      .controls { padding: 18px; }
+      .controls {
+        padding: 20px;
+        align-self: stretch;
+        max-height: min(76vh, 700px);
+        overflow: auto;
+      }
 
       h1 {
         margin: 0 0 4px;
@@ -67,7 +72,20 @@
         font-size: 0.92rem;
       }
 
-      .item-list { display: grid; gap: 10px; }
+      .eyebrow {
+        margin: 0 0 6px;
+        color: var(--accent);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .item-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
 
       .item-btn {
         width: 100%;
@@ -76,10 +94,13 @@
         background: rgba(255, 255, 255, 0.03);
         color: var(--text);
         border-radius: 12px;
-        padding: 12px;
+        min-height: 66px;
+        padding: 10px;
         cursor: pointer;
         transition: 0.2s ease;
-        font-size: 0.95rem;
+        font-size: 0.86rem;
+        display: grid;
+        gap: 3px;
       }
 
       .item-btn:hover,
@@ -94,6 +115,88 @@
         box-shadow: 0 0 0 2px var(--accent-soft);
       }
 
+      .item-btn .item-icon { font-size: 1.25rem; }
+      .item-btn .item-name { color: var(--muted); }
+
+      .section-title {
+        margin: 18px 0 8px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .mode-row,
+      .tool-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .mode-btn,
+      .tool-btn {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 9px;
+        background: rgba(255, 255, 255, 0.035);
+        color: var(--muted);
+        cursor: pointer;
+      }
+
+      .mode-btn[aria-pressed="true"],
+      .tool-btn[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: rgba(255, 157, 82, 0.12);
+        color: var(--text);
+      }
+
+      .progress {
+        height: 7px;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .progress-fill {
+        width: 0;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #ff814a, #ffd36e);
+        transition: width 0.35s ease;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        margin-top: 10px;
+      }
+
+      .stat {
+        padding: 8px 4px;
+        border-radius: 9px;
+        background: rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      .stat strong,
+      .stat span { display: block; }
+      .stat strong { font-size: 1rem; }
+      .stat span {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 0.64rem;
+        text-transform: uppercase;
+      }
+
+      .zen-note {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+        line-height: 1.4;
+      }
+
       .meta {
         margin-top: 16px;
         display: flex;
@@ -106,6 +209,39 @@
         min-height: 1.2em;
         color: var(--accent);
         font-size: 0.9rem;
+      }
+
+      .scene-label {
+        position: absolute;
+        top: 16px;
+        left: 18px;
+        z-index: 10;
+        color: rgba(255, 255, 255, 0.42);
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      .combo {
+        position: absolute;
+        top: 15px;
+        right: 18px;
+        z-index: 10;
+        padding: 7px 11px;
+        border: 1px solid rgba(255, 157, 82, 0.25);
+        border-radius: 99px;
+        background: rgba(10, 8, 7, 0.56);
+        color: var(--accent);
+        font-size: 0.75rem;
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: 0.2s ease;
+      }
+
+      .combo.visible {
+        opacity: 1;
+        transform: translateY(0);
       }
 
       /* ============================================================
@@ -637,6 +773,7 @@
 
       @media (max-width: 900px) {
         .app { grid-template-columns: 1fr; }
+        .controls { max-height: none; }
         .scene { height: min(58vh, 520px); }
         .shredder { width: 72%; height: 140px; }
         .bearing { height: 110px; }
@@ -645,22 +782,45 @@
 
       @media (prefers-reduced-motion: reduce) {
         .shaft-top .teeth, .shaft-bottom .teeth { animation: none; }
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+        }
       }
     </style>
   </head>
   <body>
     <main class="app">
       <section class="controls card">
-        <h1>Industrial Shredder</h1>
-        <p class="hint">Click an item to drop it into the hopper. The twin rotating shafts will do the rest.</p>
+        <p class="eyebrow">Shredding.io</p>
+        <h1>Feed the noise away.</h1>
+        <p class="hint">Pick something that deserves to disappear. Headphones recommended.</p>
+        <p class="section-title">Choose material</p>
         <div class="item-list" id="itemList"></div>
-        <div class="meta">
-          <strong id="counter">Shredded: 0</strong>
+        <p class="section-title">How do you feel?</p>
+        <div class="mode-row" id="modeRow">
+          <button class="mode-btn" type="button" data-mode="calm" aria-pressed="true">🌙 Slow & soft</button>
+          <button class="mode-btn" type="button" data-mode="power" aria-pressed="false">⚡ Full power</button>
+        </div>
+        <p class="section-title">Machine controls</p>
+        <div class="tool-row">
+          <button class="tool-btn" id="soundToggle" type="button" aria-pressed="false">🔇 Sound off</button>
+          <button class="tool-btn" id="zenToggle" type="button" aria-pressed="false">♾ Zen feed</button>
+        </div>
+        <p class="zen-note">Zen feed keeps choosing materials for you. Press 1–0 to shred, Z for zen, or M for sound.</p>
+        <div class="progress" aria-label="Next level"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="stats">
+          <div class="stat"><strong id="counter">0</strong><span>session</span></div>
+          <div class="stat"><strong id="allTime">0</strong><span>all time</span></div>
+          <div class="stat"><strong id="level">1</strong><span>machine</span></div>
         </div>
         <p class="log" id="log" aria-live="polite"></p>
       </section>
 
       <section class="scene card" id="scene">
+        <div class="scene-label">Twin-shaft relaxation unit</div>
+        <div class="combo" id="combo">FLOW × 2</div>
         <div class="top-light"></div>
 
         <!-- Worn steel hopper walls -->
@@ -695,48 +855,103 @@
       const items = [
         {
           id: 'paper',
-          name: 'Paper Stack',
-          emoji: '📄',
+          name: 'Bad meeting notes',
+          emoji: '📝',
           color: '#f6f7fb',
           accent: '#9ad7ff',
           effectMultiplier: 1,
-          visualStyle: 'card'
+          visualStyle: 'card',
+          sound: 0.38
         },
         {
           id: 'card',
-          name: 'Old Credit Card',
+          name: 'Expired card',
           emoji: '💳',
           color: '#79c6ff',
           accent: '#ffdf6e',
           effectMultiplier: 1,
-          visualStyle: 'card'
+          visualStyle: 'card',
+          sound: 0.62
         },
         {
           id: 'coupon',
-          name: 'Expired Coupon',
-          emoji: '🎟️',
+          name: 'Overdue invoice',
+          emoji: '🧾',
           color: '#ffd98a',
           accent: '#ff7a8a',
           effectMultiplier: 1,
-          visualStyle: 'card'
+          visualStyle: 'card',
+          sound: 0.42
         },
         {
           id: 'sticky',
-          name: 'Sticky Note',
-          emoji: '🗒️',
+          name: 'Endless to-do list',
+          emoji: '📋',
           color: '#ffe66d',
           accent: '#8cffc1',
           effectMultiplier: 1,
-          visualStyle: 'card'
+          visualStyle: 'card',
+          sound: 0.45
         },
         {
           id: 'cd',
-          name: 'CD Disk',
+          name: 'Ancient software CD',
           emoji: '💿',
           color: '#d8cfff',
           accent: '#8df7ff',
           effectMultiplier: 1.55,
-          visualStyle: 'disc'
+          visualStyle: 'disc',
+          sound: 0.82
+        },
+        {
+          id: 'phone',
+          name: 'Buzzing old phone',
+          emoji: '📱',
+          color: '#303944',
+          accent: '#7df0cb',
+          effectMultiplier: 1.4,
+          visualStyle: 'card',
+          sound: 0.9
+        },
+        {
+          id: 'alarm',
+          name: 'Monday alarm clock',
+          emoji: '⏰',
+          color: '#e85454',
+          accent: '#ffcf66',
+          effectMultiplier: 1.55,
+          visualStyle: 'disc',
+          sound: 0.95
+        },
+        {
+          id: 'keyboard',
+          name: 'Sticky keyboard',
+          emoji: '⌨️',
+          color: '#d5d8dc',
+          accent: '#727b86',
+          effectMultiplier: 1.3,
+          visualStyle: 'card',
+          sound: 0.72
+        },
+        {
+          id: 'spam',
+          name: 'Inbox with 999+',
+          emoji: '📨',
+          color: '#f2eee4',
+          accent: '#ff6b6b',
+          effectMultiplier: 1.15,
+          visualStyle: 'card',
+          sound: 0.5
+        },
+        {
+          id: 'mystery',
+          name: 'Mystery stress box',
+          emoji: '❓',
+          color: '#6d4aff',
+          accent: '#ff55c8',
+          effectMultiplier: 1.8,
+          visualStyle: 'card',
+          sound: 1
         }
       ];
 
@@ -746,9 +961,28 @@
       const teethBottom = document.getElementById('teethBottom');
       const log = document.getElementById('log');
       const counter = document.getElementById('counter');
+      const allTime = document.getElementById('allTime');
+      const level = document.getElementById('level');
+      const progressFill = document.getElementById('progressFill');
+      const soundToggle = document.getElementById('soundToggle');
+      const zenToggle = document.getElementById('zenToggle');
+      const combo = document.getElementById('combo');
+
+      const savedLifetimeTotal = Number.parseInt(localStorage.getItem('shredding-total') || '0', 10);
+      const itemsPerLevel = 10;
+      const comboTimeoutMs = 5000;
+      const powerModeVibrationPattern = [25, 20, 35];
 
       let crushing = false;
       let crushedTotal = 0;
+      let lifetimeTotal = Number.isFinite(savedLifetimeTotal) ? Math.max(0, savedLifetimeTotal) : 0;
+      let soundEnabled = false;
+      let zenEnabled = false;
+      let zenTimer = null;
+      let selectedMode = 'calm';
+      let lastShredAt = 0;
+      let comboCount = 0;
+      let audioContext = null;
       const pilePieces = [];
       /* 46 pieces keeps the floor looking full while limiting long-session DOM growth. */
       const maxPilePieces = 46;
@@ -763,6 +997,84 @@
 
       function randomBetween(min, max) {
         return min + Math.random() * (max - min);
+      }
+
+      function playCrunch(def) {
+        if (!soundEnabled) return;
+        audioContext ||= new AudioContext();
+        const now = audioContext.currentTime;
+        const duration = selectedMode === 'power' ? 0.7 : 1;
+        const buffer = audioContext.createBuffer(1, audioContext.sampleRate * duration, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i += 1) {
+          const decay = Math.pow(1 - i / data.length, 2);
+          data[i] = (Math.random() * 2 - 1) * decay;
+        }
+
+        const source = audioContext.createBufferSource();
+        const filter = audioContext.createBiquadFilter();
+        const gain = audioContext.createGain();
+        source.buffer = buffer;
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(420 + def.sound * 580, now);
+        filter.frequency.exponentialRampToValueAtTime(90, now + duration);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(selectedMode === 'power' ? 0.3 : 0.18, now + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        source.connect(filter).connect(gain).connect(audioContext.destination);
+        source.start();
+      }
+
+      function playMotorPulse() {
+        if (!soundEnabled) return;
+        audioContext ||= new AudioContext();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(selectedMode === 'power' ? 58 : 42, now);
+        oscillator.frequency.exponentialRampToValueAtTime(30, now + 1.1);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.035, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(now + 1.2);
+      }
+
+      function updateStats() {
+        const machineLevel = Math.floor(lifetimeTotal / itemsPerLevel) + 1;
+        counter.textContent = crushedTotal;
+        allTime.textContent = lifetimeTotal;
+        level.textContent = machineLevel;
+        progressFill.style.width = `${(lifetimeTotal % itemsPerLevel) * (100 / itemsPerLevel)}%`;
+      }
+
+      function updateCombo() {
+        const now = Date.now();
+        comboCount = now - lastShredAt < comboTimeoutMs ? comboCount + 1 : 1;
+        lastShredAt = now;
+        combo.textContent = `FLOW × ${comboCount}`;
+        combo.classList.toggle('visible', comboCount > 1);
+      }
+
+      function scheduleZenFeed(delay = 700) {
+        clearTimeout(zenTimer);
+        if (!zenEnabled) return;
+        zenTimer = setTimeout(() => {
+          const nextIndex = Math.floor(Math.random() * items.length);
+          const button = itemList.children[nextIndex];
+          crushItem(items[nextIndex], button);
+        }, delay);
+      }
+
+      function setZen(enabled) {
+        zenEnabled = enabled;
+        zenToggle.setAttribute('aria-pressed', String(enabled));
+        zenToggle.textContent = enabled ? '⏸ Pause zen' : '♾ Zen feed';
+        log.textContent = enabled ? 'Zen feed started. Just watch it go.' : 'Zen feed paused.';
+        if (enabled) scheduleZenFeed(250);
+        else clearTimeout(zenTimer);
       }
 
       function fragmentColors(def) {
@@ -803,11 +1115,12 @@
 
       function renderItems() {
         itemList.innerHTML = '';
-        items.forEach((item) => {
+        items.forEach((item, index) => {
           const button = document.createElement('button');
           button.type = 'button';
           button.className = 'item-btn';
-          button.textContent = `${item.emoji} ${item.name}`;
+          button.setAttribute('aria-label', `Shred ${item.name}. Keyboard shortcut ${index === 9 ? 0 : index + 1}`);
+          button.innerHTML = `<span class="item-icon" aria-hidden="true">${item.emoji}</span><span class="item-name">${item.name}</span>`;
           button.addEventListener('click', () => crushItem(item, button));
           itemList.appendChild(button);
         });
@@ -948,6 +1261,7 @@
         crushing = true;
         scene.classList.add('shredding');
         if (button) button.classList.add('active');
+        playMotorPulse();
 
         const item = buildItemElement(def);
         const activeBurstTimers = [];
@@ -964,6 +1278,7 @@
           const itemBounds = item.getBoundingClientRect();
           const x = itemBounds.left - sceneBounds.left + itemBounds.width / 2;
           const y = itemBounds.top  - sceneBounds.top  + itemBounds.height / 2;
+          playCrunch(def);
           createSparks(x, y, effectCount(def, 10));
           createDust(x, y, 12);
           let burstCount = 0;
@@ -996,8 +1311,12 @@
           addPilePieces(def, effectCount(def, 5));
 
           crushedTotal += 1;
-          counter.textContent = `Shredded: ${crushedTotal}`;
-          log.textContent = `${def.name} shredded ✦`;
+          lifetimeTotal += 1;
+          localStorage.setItem('shredding-total', String(lifetimeTotal));
+          updateStats();
+          updateCombo();
+          log.textContent = `${def.name} is gone. Breathe out.`;
+          if (navigator.vibrate && selectedMode === 'power') navigator.vibrate(powerModeVibrationPattern);
         }, 1050);
 
         // Cleanup
@@ -1008,14 +1327,51 @@
           if (button) button.classList.remove('active');
           scene.classList.remove('shredding');
           crushing = false;
+          scheduleZenFeed(selectedMode === 'power' ? 300 : 850);
         }, 1700);
       }
+
+      document.getElementById('modeRow').addEventListener('click', (event) => {
+        const button = event.target.closest('[data-mode]');
+        if (!button) return;
+        selectedMode = button.dataset.mode;
+        document.querySelectorAll('[data-mode]').forEach((modeButton) => {
+          modeButton.setAttribute('aria-pressed', String(modeButton === button));
+        });
+        document.documentElement.style.setProperty('--accent', selectedMode === 'power' ? '#ff6b42' : '#ff9d52');
+        log.textContent = selectedMode === 'power' ? 'Full power engaged.' : 'Slow mode. Take your time.';
+      });
+
+      soundToggle.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+        soundToggle.textContent = soundEnabled ? '🔊 Sound on' : '🔇 Sound off';
+        if (soundEnabled) {
+          audioContext ||= new AudioContext();
+          audioContext.resume();
+          playMotorPulse();
+        }
+      });
+
+      zenToggle.addEventListener('click', () => setZen(!zenEnabled));
+
+      document.addEventListener('keydown', (event) => {
+        if (/^[0-9]$/.test(event.key)) {
+          const index = event.key === '0' ? 9 : Number(event.key) - 1;
+          if (items[index]) crushItem(items[index], itemList.children[index]);
+        } else if (event.key.toLowerCase() === 'z') {
+          setZen(!zenEnabled);
+        } else if (event.key.toLowerCase() === 'm') {
+          soundToggle.click();
+        }
+      });
 
       buildTeeth(teethTop);
       buildTeeth(teethBottom);
       renderItems();
       createAmbientMotes();
-      log.textContent = 'Pick an item to shred.';
+      updateStats();
+      log.textContent = 'What can the machine take off your mind?';
     </script>
   </body>
 </html>
