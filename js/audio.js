@@ -77,4 +77,28 @@ export class MachineAudio {
     this.motor.oscillator.frequency.linearRampToValueAtTime(23, now + 0.18);
     this.motor.oscillator.frequency.linearRampToValueAtTime(34, now + 0.8 + amount * 0.15);
   }
+
+  crunch(item, intensity = 1) {
+    if (!this.enabled) return;
+    const now = this.context.currentTime;
+    const duration = .075 + item.mass * .025;
+    const length = Math.floor(this.context.sampleRate * duration);
+    const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
+    const samples = buffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) {
+      const envelope = Math.pow(1 - i / length, 2.2);
+      samples[i] = (Math.random() * 2 - 1) * envelope;
+    }
+    const source = this.context.createBufferSource();
+    const filter = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+    source.buffer = buffer;
+    filter.type = 'bandpass';
+    filter.frequency.value = 180 + item.sound * 1050;
+    filter.Q.value = .7;
+    gain.gain.setValueAtTime(Math.min(.2, .055 * intensity + item.mass * .018), now);
+    gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+    source.connect(filter).connect(gain).connect(this.master);
+    source.start();
+  }
 }
