@@ -23,6 +23,15 @@ const elements = {
 
 const state = new GameState();
 const audio = new MachineAudio();
+const ZEN_THROW = {
+  horizontalRange: 3,
+  horizontalOffset: -1.5,
+  startY: -1.4,
+  startZ: 5.2,
+  upwardBase: 7,
+  upwardVariance: 2.5,
+  depthVelocity: -7.2
+};
 let selectedIndex = 0;
 let renderer;
 let input;
@@ -87,7 +96,16 @@ function scheduleZen(delay = 650) {
   if (!state.zen) return;
   zenTimer = setTimeout(() => {
     const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-    launch(item, [Math.random() * 3 - 1.5, -1.4, 5.2], [Math.random() * 3 - 1.5, 7 + Math.random() * 2.5, -7.2]);
+    const horizontalVelocity = Math.random() * ZEN_THROW.horizontalRange + ZEN_THROW.horizontalOffset;
+    launch(
+      item,
+      [horizontalVelocity, ZEN_THROW.startY, ZEN_THROW.startZ],
+      [
+        horizontalVelocity,
+        ZEN_THROW.upwardBase + Math.random() * ZEN_THROW.upwardVariance,
+        ZEN_THROW.depthVelocity
+      ]
+    );
   }, delay);
 }
 

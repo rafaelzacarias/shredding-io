@@ -17,6 +17,8 @@ const VERTEX_SHADER = `
 
 const FRAGMENT_SHADER = `
   precision mediump float;
+  const float FLOOR_SHADE_START = -4.5;
+  const float FLOOR_SHADE_END = 3.0;
   varying vec3 vNormal;
   varying vec3 vWorld;
   uniform vec3 uColor;
@@ -29,7 +31,7 @@ const FRAGMENT_SHADER = `
     vec3 rimDir = normalize(uCamera - vWorld);
     float diffuse = max(dot(normal, key), 0.0);
     float rim = pow(1.0 - max(dot(normal, rimDir), 0.0), 2.4);
-    float floorShade = smoothstep(-4.5, 3.0, vWorld.y);
+    float floorShade = smoothstep(FLOOR_SHADE_START, FLOOR_SHADE_END, vWorld.y);
     vec3 color = uColor * (0.18 + diffuse * 0.72 + floorShade * 0.08);
     color += vec3(0.18, 0.48, 0.58) * rim * (0.22 + uMetallic * 0.38);
     color += uColor * uGlow;
@@ -62,6 +64,18 @@ const PARTICLE_FRAGMENT = `
     gl_FragColor = vec4(vColor, smoothstep(0.5, 0.08, d));
   }
 `;
+
+const DISPLAY_CONFIG = {
+  mobileBreakpoint: 700,
+  mobilePixelRatioCap: 1.5,
+  desktopPixelRatioCap: 2
+};
+
+const POINTER_PLANE = {
+  scale: 0.72,
+  verticalOffset: 1.4,
+  depth: 5.2
+};
 
 const vec3 = {
   normalize(v) {
@@ -280,7 +294,10 @@ export class ShredderRenderer extends EventTarget {
   }
 
   resize() {
-    const ratio = Math.min(devicePixelRatio || 1, innerWidth < 700 ? 1.5 : 2);
+    const ratioCap = innerWidth < DISPLAY_CONFIG.mobileBreakpoint
+      ? DISPLAY_CONFIG.mobilePixelRatioCap
+      : DISPLAY_CONFIG.desktopPixelRatioCap;
+    const ratio = Math.min(devicePixelRatio || 1, ratioCap);
     const width = Math.floor(this.canvas.clientWidth * ratio);
     const height = Math.floor(this.canvas.clientHeight * ratio);
     if (this.canvas.width !== width || this.canvas.height !== height) {
@@ -294,7 +311,11 @@ export class ShredderRenderer extends EventTarget {
     const x = (clientX - rect.left) / rect.width * 2 - 1;
     const y = 1 - (clientY - rect.top) / rect.height * 2;
     const aspect = rect.width / rect.height;
-    return [x * depth * aspect * 0.72, y * depth * 0.72 + 1.4, 5.2];
+    return [
+      x * depth * aspect * POINTER_PLANE.scale,
+      y * depth * POINTER_PLANE.scale + POINTER_PLANE.verticalOffset,
+      POINTER_PLANE.depth
+    ];
   }
 
   setPreview(item, position) {
@@ -404,7 +425,12 @@ export class ShredderRenderer extends EventTarget {
       });
     }
     this.spark([0, -0.25, 1.1], [1, 0.32, 0.08], count * 2);
-    this.debris.push({ position: [random(-2.8, 2.8), -2.15, random(0, 2.5)], rotation: [random(0, 1), random(0, 6), random(0, 1)], scale: [random(.05,.18), random(.03,.09), random(.1,.35)], color: body.item.color });
+    this.debris.push({
+      position: [random(-2.8, 2.8), -2.15, random(0, 2.5)],
+      rotation: [random(0, 1), random(0, 6), random(0, 1)],
+      scale: [random(.05, .18), random(.03, .09), random(.1, .35)],
+      color: body.item.color
+    });
     if (this.debris.length > 52) this.debris.shift();
     this.dispatchEvent(new CustomEvent('shred', { detail: body.item }));
   }
