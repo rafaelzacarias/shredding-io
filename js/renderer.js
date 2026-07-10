@@ -469,7 +469,7 @@ export class ShredderRenderer extends EventTarget {
         color: i % 3 === 0 ? body.item.accent : body.item.color
       });
     }
-    if (this.debris.length > 52) this.debris.shift();
+    while (this.debris.length > 52) this.debris.shift();
     this.dispatchEvent(new CustomEvent('shred', { detail: body.item }));
   }
 
