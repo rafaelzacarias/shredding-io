@@ -1266,7 +1266,7 @@
 
           event.preventDefault();
           button.dataset.skipClick = 'true';
-          setTimeout(() => delete button.dataset.skipClick, 0);
+          requestAnimationFrame(() => delete button.dataset.skipClick);
           const recent = current.samples.filter((sample) => event.timeStamp - sample.time < 110);
           const first = recent[0] || current.samples[0];
           const elapsed = Math.max(16, event.timeStamp - first.time);
