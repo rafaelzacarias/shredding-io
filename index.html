@@ -101,6 +101,8 @@
         font-size: 0.86rem;
         display: grid;
         gap: 3px;
+        touch-action: none;
+        user-select: none;
       }
 
       .item-btn:hover,
@@ -255,6 +257,8 @@
         background:
           radial-gradient(ellipse at 50% 0%, #3a2a1d 0%, #15110d 65%, #0a0807 100%);
         isolation: isolate;
+        perspective: 900px;
+        transform-style: preserve-3d;
       }
 
       .scene::before {
@@ -296,6 +300,8 @@
           linear-gradient(180deg, rgba(0,0,0,0.0) 60%, rgba(0,0,0,0.55) 100%);
         pointer-events: none;
         z-index: 2;
+        transform: rotateX(2deg);
+        transform-style: preserve-3d;
         transition: filter 0.2s ease;
       }
 
@@ -342,7 +348,9 @@
         border-bottom: none;
         box-shadow:
           inset 0 0 60px rgba(0,0,0,0.7),
-          inset 0 6px 0 rgba(255,255,255,0.04);
+          inset 0 6px 0 rgba(255,255,255,0.04),
+          0 28px 40px rgba(0,0,0,0.58);
+        transform: translateZ(-45px);
       }
       /* scratched / worn texture on the back wall */
       .hopper-back::before,
@@ -379,6 +387,7 @@
         background:
           linear-gradient(135deg, #5a4a3a 0%, #2c2520 55%, #1a1410 100%);
         box-shadow: inset 0 0 80px rgba(0,0,0,0.65);
+        transform-origin: top center;
       }
       .hopper-wall::before {
         /* rust / wear texture */
@@ -411,6 +420,7 @@
         left: 0;
         clip-path: polygon(0 0, 100% 0, 60% 100%, 0 100%);
         border-left: 1px solid rgba(255,255,255,0.05);
+        transform: rotateY(7deg) translateZ(12px);
       }
       .hopper-right {
         right: 0;
@@ -418,6 +428,7 @@
         background:
           linear-gradient(225deg, #5a4a3a 0%, #2c2520 55%, #1a1410 100%);
         border-right: 1px solid rgba(255,255,255,0.05);
+        transform: rotateY(-7deg) translateZ(12px);
       }
 
       /* ---- Twin-shaft shredder mechanism ---- */
@@ -425,7 +436,8 @@
         position: absolute;
         left: 50%;
         bottom: 18%;
-        transform: translateX(-50%);
+        transform: translateX(-50%) rotateX(54deg) translateZ(34px);
+        transform-style: preserve-3d;
         width: 56%;
         max-width: 480px;
         height: 170px;
@@ -516,6 +528,17 @@
           inset 0 4px 8px rgba(255,255,255,0.05),
           inset 0 -8px 14px rgba(0,0,0,0.7),
           0 6px 14px rgba(0,0,0,0.6);
+        transform-style: preserve-3d;
+      }
+
+      .shaft::after {
+        content: '';
+        position: absolute;
+        inset: 8px 0;
+        border-radius: 50%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.13), transparent 42%);
+        transform: translateZ(13px);
+        pointer-events: none;
       }
 
       .scene.shredding .shaft {
@@ -544,6 +567,7 @@
         clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
         border-left: 1px solid rgba(0,0,0,0.55);
         box-shadow: inset -2px 0 0 rgba(255,255,255,0.05);
+        transform: translateZ(11px);
       }
       .tooth::after {
         /* hooked tip highlight */
@@ -661,6 +685,8 @@
           top 0.55s cubic-bezier(0.45, 0.1, 0.6, 1),
           transform 0.55s cubic-bezier(0.45, 0.1, 0.6, 1);
         box-shadow: 0 6px 14px rgba(0,0,0,0.5);
+        transform-style: preserve-3d;
+        backface-visibility: visible;
       }
 
       /* lands on top of the rollers */
@@ -673,12 +699,13 @@
         animation: feed-in 0.55s cubic-bezier(0.6, 0, 0.4, 1) forwards;
       }
       @keyframes feed-in {
-        0%   { transform: translateX(-50%) scaleY(1) scaleX(1) rotate(0deg); filter: brightness(1); }
-        35%  { transform: translateX(-50%) scaleY(0.72) scaleX(1.08) rotate(5deg); filter: brightness(1.25); }
-        60%  { transform: translateX(-50%) scaleY(0.45) scaleX(1.18) rotate(-4deg); filter: brightness(1.4); }
+        0%   { transform: translateX(-50%) rotate(var(--bite-angle, 0deg)) rotateX(12deg) scaleY(1) scaleX(1); filter: brightness(1); }
+        22%  { transform: translateX(-50%) rotate(calc(var(--bite-angle, 0deg) + 7deg)) rotateX(28deg) scaleY(0.86) scaleX(1.04); filter: brightness(1.12); }
+        48%  { transform: translateX(-50%) rotate(calc(var(--bite-angle, 0deg) - 5deg)) rotateX(46deg) scaleY(0.52) scaleX(1.14); filter: brightness(1.34); }
+        72%  { transform: translateX(-50%) rotate(calc(var(--bite-angle, 0deg) + 3deg)) rotateX(68deg) scaleY(0.25) scaleX(1.24); filter: brightness(1.52); }
         100% {
           top: calc(var(--shredder-intake-position) - var(--item-feed-end-offset));
-          transform: translateX(-50%) scaleY(0.05) scaleX(1.32) rotate(0deg);
+          transform: translateX(-50%) rotate(var(--bite-angle, 0deg)) rotateX(88deg) scaleY(0.035) scaleX(1.36);
           opacity: 0;
           filter: brightness(1.7);
         }
@@ -692,14 +719,15 @@
         z-index: 4;
         animation: frag-fall 1.1s cubic-bezier(0.3, 0.6, 0.5, 1) forwards;
         box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        transform-style: preserve-3d;
       }
       @keyframes frag-fall {
         0% {
-          transform: translate(0, 0) rotate(0deg);
+          transform: translate3d(0, 0, 20px) rotateX(0deg) rotate(0deg);
           opacity: 1;
         }
         100% {
-          transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+          transform: translate3d(var(--dx), var(--dy), var(--dz, -80px)) rotateX(var(--rot-x, 240deg)) rotate(var(--rot));
           opacity: 0;
         }
       }
@@ -771,6 +799,25 @@
         to { transform: translateY(0) rotate(var(--rot, 0deg)) scale(1); opacity: 0.74; }
       }
 
+      .throw-ghost {
+        position: fixed;
+        z-index: 100;
+        width: 78px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255,255,255,0.38);
+        border-radius: 10px;
+        pointer-events: none;
+        font-size: 1.65rem;
+        box-shadow: 0 18px 34px rgba(0,0,0,0.55);
+        transform: translate(-50%, -50%) rotate(var(--ghost-angle, 0deg)) rotateX(18deg);
+        will-change: left, top, transform;
+      }
+
+      .scene.impact-left { transform-origin: 42% 80%; }
+      .scene.impact-right { transform-origin: 58% 80%; }
+
       @media (max-width: 900px) {
         .app { grid-template-columns: 1fr; }
         .controls { max-height: none; }
@@ -778,6 +825,63 @@
         .shredder { width: 72%; height: 140px; }
         .bearing { height: 110px; }
         .shaft { height: 92px; }
+      }
+
+      @media (max-width: 600px) and (orientation: portrait) {
+        body {
+          min-height: 100svh;
+          place-items: start center;
+          overflow: hidden;
+        }
+        .app {
+          width: 100vw;
+          height: 100svh;
+          padding: 6px;
+          gap: 6px;
+          grid-template-rows: minmax(270px, 43svh) minmax(0, 1fr);
+        }
+        .card { border-radius: 12px; }
+        .controls {
+          min-height: 0;
+          max-height: none;
+          overflow: hidden;
+          padding: 8px 10px;
+        }
+        .controls h1,
+        .controls .hint,
+        .zen-note,
+        .log { display: none; }
+        .eyebrow { margin-bottom: 3px; font-size: 0.62rem; }
+        .section-title { margin: 7px 0 4px; font-size: 0.59rem; }
+        .item-list { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+        .item-btn {
+          min-height: 45px;
+          padding: 4px 2px;
+          place-items: center;
+          text-align: center;
+          gap: 0;
+        }
+        .item-btn .item-icon { font-size: 1.05rem; }
+        .item-btn .item-name {
+          max-width: 100%;
+          overflow: hidden;
+          font-size: 0.55rem;
+          line-height: 1.05;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .mode-btn, .tool-btn { min-height: 30px; padding: 4px; font-size: 0.66rem; }
+        .progress { margin-top: 6px; height: 4px; }
+        .stats { margin-top: 5px; }
+        .stat { padding: 3px; }
+        .stat strong { font-size: 0.76rem; }
+        .stat span { font-size: 0.48rem; }
+        .scene { height: 100%; min-height: 0; }
+        .scene-label { top: 9px; left: 11px; font-size: 0.56rem; }
+        .combo { top: 7px; right: 9px; }
+        .shredder { width: 82%; height: 128px; bottom: 16%; }
+        .bearing { height: 102px; }
+        .shaft { height: 84px; }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -795,7 +899,7 @@
       <section class="controls card">
         <p class="eyebrow">Shredding.io</p>
         <h1>Feed the noise away.</h1>
-        <p class="hint">Pick something that deserves to disappear. Headphones recommended.</p>
+        <p class="hint">Tap to drop, or throw a material into the cutters. Speed and angle change every shred.</p>
         <p class="section-title">Choose material</p>
         <div class="item-list" id="itemList"></div>
         <p class="section-title">How do you feel?</p>
@@ -818,7 +922,7 @@
         <p class="log" id="log" aria-live="polite"></p>
       </section>
 
-      <section class="scene card" id="scene">
+      <section class="scene card" id="scene" aria-label="3D twin-shaft shredder">
         <div class="scene-label">Twin-shaft relaxation unit</div>
         <div class="combo" id="combo">FLOW × 2</div>
         <div class="top-light"></div>
@@ -999,6 +1103,26 @@
         return min + Math.random() * (max - min);
       }
 
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function throwPhysics(input = {}) {
+        const vx = Number.isFinite(input.vx) ? input.vx : randomBetween(-0.18, 0.18);
+        const vy = Number.isFinite(input.vy) ? input.vy : 0.72;
+        const speed = Math.hypot(vx, vy);
+        return {
+          vx,
+          vy,
+          speed,
+          impact: clamp(speed / 1.65, 0.32, 1.45),
+          lateral: clamp(vx / 1.4, -1, 1),
+          biteAngle: clamp((Math.atan2(vy, vx) * 180 / Math.PI) - 90, -58, 58),
+          startX: input.startX,
+          startY: input.startY
+        };
+      }
+
       function playCrunch(def) {
         if (!soundEnabled) return;
         audioContext ||= new AudioContext();
@@ -1121,12 +1245,78 @@
           button.className = 'item-btn';
           button.setAttribute('aria-label', `Shred ${item.name}. Keyboard shortcut ${index === 9 ? 0 : index + 1}`);
           button.innerHTML = `<span class="item-icon" aria-hidden="true">${item.emoji}</span><span class="item-name">${item.name}</span>`;
-          button.addEventListener('click', () => crushItem(item, button));
+          button.addEventListener('click', () => {
+            if (button.dataset.skipClick) return;
+            crushItem(item, button);
+          });
+          attachThrowInput(button, item);
           itemList.appendChild(button);
         });
       }
 
-      function createSparks(x, y, count = 12) {
+      function attachThrowInput(button, def) {
+        let gesture = null;
+
+        const finishGesture = (event, cancelled = false) => {
+          if (!gesture || event.pointerId !== gesture.pointerId) return;
+          const current = gesture;
+          gesture = null;
+          current.ghost?.remove();
+          if (!current.dragging || cancelled) return;
+
+          event.preventDefault();
+          button.dataset.skipClick = 'true';
+          setTimeout(() => delete button.dataset.skipClick, 0);
+          const recent = current.samples.filter((sample) => event.timeStamp - sample.time < 110);
+          const first = recent[0] || current.samples[0];
+          const elapsed = Math.max(16, event.timeStamp - first.time);
+          const bounds = scene.getBoundingClientRect();
+          crushItem(def, button, {
+            startX: event.clientX - bounds.left,
+            startY: event.clientY - bounds.top,
+            vx: (event.clientX - first.x) / elapsed,
+            vy: (event.clientY - first.y) / elapsed
+          });
+        };
+
+        button.addEventListener('pointerdown', (event) => {
+          if (crushing || event.button > 0) return;
+          button.setPointerCapture(event.pointerId);
+          gesture = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startY: event.clientY,
+            samples: [{ x: event.clientX, y: event.clientY, time: event.timeStamp }],
+            dragging: false,
+            ghost: null
+          };
+        });
+
+        button.addEventListener('pointermove', (event) => {
+          if (!gesture || event.pointerId !== gesture.pointerId) return;
+          const distance = Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY);
+          if (!gesture.dragging && distance > 7) {
+            gesture.dragging = true;
+            gesture.ghost = document.createElement('div');
+            gesture.ghost.className = 'throw-ghost';
+            gesture.ghost.textContent = def.emoji;
+            gesture.ghost.style.background = `linear-gradient(135deg, ${def.color}, ${def.accent})`;
+            document.body.appendChild(gesture.ghost);
+          }
+          if (!gesture.dragging) return;
+          event.preventDefault();
+          gesture.samples.push({ x: event.clientX, y: event.clientY, time: event.timeStamp });
+          gesture.samples = gesture.samples.slice(-8);
+          gesture.ghost.style.left = `${event.clientX}px`;
+          gesture.ghost.style.top = `${event.clientY}px`;
+          gesture.ghost.style.setProperty('--ghost-angle', `${clamp((event.clientX - gesture.startX) * 0.22, -35, 35)}deg`);
+        });
+
+        button.addEventListener('pointerup', (event) => finishGesture(event));
+        button.addEventListener('pointercancel', (event) => finishGesture(event, true));
+      }
+
+      function createSparks(x, y, count = 12, physics = throwPhysics()) {
         const colors = ['#ffb060', '#ffe49a', '#ff7a3a'];
         for (let i = 0; i < count; i += 1) {
           const s = document.createElement('span');
@@ -1134,8 +1324,8 @@
           s.style.left = `${x}px`;
           s.style.top = `${y}px`;
           s.style.setProperty('--spark-color', colors[i % colors.length]);
-          s.style.setProperty('--dx', `${randomBetween(-120, 120)}px`);
-          s.style.setProperty('--dy', `${randomBetween(30, 120)}px`);
+          s.style.setProperty('--dx', `${randomBetween(-120, 120) + physics.lateral * 75}px`);
+          s.style.setProperty('--dy', `${randomBetween(25, 105) + physics.impact * 22}px`);
           scene.appendChild(s);
           s.addEventListener('animationend', () => s.remove(), { once: true });
         }
@@ -1155,7 +1345,7 @@
         }
       }
 
-      function createFragments(x, y, def, count = 14) {
+      function createFragments(x, y, def, count = 14, physics = throwPhysics()) {
         const colors = fragmentColors(def);
         for (let i = 0; i < count; i += 1) {
           const f = document.createElement('span');
@@ -1164,18 +1354,20 @@
           const h = randomBetween(14, 40);
           f.style.width = `${w}px`;
           f.style.height = `${h}px`;
-          f.style.left = `${x + randomBetween(-120, 120)}px`;
+          f.style.left = `${x + randomBetween(-105, 105)}px`;
           f.style.top = `${y}px`;
           f.style.setProperty('--frag-bg', colors[i % colors.length]);
-          f.style.setProperty('--dx', `${randomBetween(-55, 55)}px`);
-          f.style.setProperty('--dy', `${randomBetween(80, 220)}px`);
-          f.style.setProperty('--rot', `${randomBetween(-140, 140)}deg`);
+          f.style.setProperty('--dx', `${randomBetween(-55, 55) + physics.lateral * 95}px`);
+          f.style.setProperty('--dy', `${randomBetween(80, 190) + physics.impact * 55}px`);
+          f.style.setProperty('--dz', `${randomBetween(-130, 75)}px`);
+          f.style.setProperty('--rot', `${randomBetween(-180, 180) + physics.biteAngle * 2}deg`);
+          f.style.setProperty('--rot-x', `${randomBetween(120, 520)}deg`);
           scene.appendChild(f);
           f.addEventListener('animationend', () => f.remove(), { once: true });
         }
       }
 
-      function createRibbons(x, y, def, count = 18) {
+      function createRibbons(x, y, def, count = 18, physics = throwPhysics()) {
         const colors = fragmentColors(def);
         for (let i = 0; i < count; i += 1) {
           const r = document.createElement('span');
@@ -1185,19 +1377,19 @@
           r.style.setProperty('--frag-bg', colors[i % colors.length]);
           r.style.setProperty('--w', `${randomBetween(4, 10)}px`);
           r.style.setProperty('--h', `${randomBetween(42, 104)}px`);
-          r.style.setProperty('--dx', `${randomBetween(-155, 155)}px`);
-          r.style.setProperty('--dy', `${randomBetween(120, 270)}px`);
-          r.style.setProperty('--rot', `${randomBetween(-360, 360)}deg`);
-          r.style.setProperty('--start-rot', `${randomBetween(-40, 40)}deg`);
+          r.style.setProperty('--dx', `${randomBetween(-140, 140) + physics.lateral * 110}px`);
+          r.style.setProperty('--dy', `${randomBetween(120, 240) + physics.impact * 45}px`);
+          r.style.setProperty('--rot', `${randomBetween(-360, 360) + physics.biteAngle * 3}deg`);
+          r.style.setProperty('--start-rot', `${physics.biteAngle + randomBetween(-18, 18)}deg`);
           r.style.setProperty('--duration', `${randomBetween(1.15, 1.85)}s`);
           scene.appendChild(r);
           r.addEventListener('animationend', () => r.remove(), { once: true });
         }
       }
 
-      function shredBurst(def, x, y, scale = 1) {
-        createRibbons(x, y, def, Math.round(effectCount(def, 7) * scale));
-        createFragments(x, y, def, Math.round(effectCount(def, 6) * scale));
+      function shredBurst(def, x, y, scale = 1, physics = throwPhysics()) {
+        createRibbons(x, y, def, Math.round(effectCount(def, 7) * scale), physics);
+        createFragments(x, y, def, Math.round(effectCount(def, 6) * scale), physics);
         createDust(x, y, Math.round(effectCount(def, 6) * scale));
       }
 
@@ -1256,31 +1448,72 @@
         return el;
       }
 
-      function crushItem(def, button) {
+      function animateItemFlight(item, physics) {
+        const bounds = scene.getBoundingClientRect();
+        const startX = clamp(physics.startX ?? bounds.width / 2, -45, bounds.width + 45);
+        const startY = clamp(physics.startY ?? -82, -100, bounds.height * 0.58);
+        const intakeY = bounds.height * 0.82 - 188;
+        const landingX = clamp(
+          startX + physics.vx * 150,
+          bounds.width * 0.32,
+          bounds.width * 0.68
+        );
+        const dx = landingX - startX;
+        const dy = intakeY - startY;
+        const duration = clamp(760 - physics.speed * 155, 430, 760);
+        const lift = clamp(-physics.vy * 85 - 36, -140, 20);
+        const spin = clamp(physics.vx * 250, -220, 220);
+
+        item.style.left = `${startX}px`;
+        item.style.top = `${startY}px`;
+        item.style.transition = 'none';
+        const flight = item.animate([
+          { transform: 'translateX(-50%) translate3d(0, 0, 85px) rotateX(0deg) rotateZ(0deg)', offset: 0 },
+          {
+            transform: `translateX(-50%) translate3d(${dx * 0.48}px, ${dy * 0.34 + lift}px, 135px) rotateX(115deg) rotateZ(${spin * 0.46}deg)`,
+            offset: 0.48,
+            easing: 'cubic-bezier(0.18, 0.62, 0.35, 1)'
+          },
+          {
+            transform: `translateX(-50%) translate3d(${dx}px, ${dy}px, 12px) rotateX(240deg) rotateZ(${spin}deg)`,
+            offset: 1
+          }
+        ], { duration, fill: 'forwards', easing: 'cubic-bezier(0.28, 0.12, 0.72, 0.8)' });
+
+        flight.finished.then(() => {
+          item.style.left = `${landingX}px`;
+          item.style.top = `${intakeY}px`;
+          item.style.transform = `translateX(-50%) rotate(${physics.biteAngle}deg) rotateX(12deg)`;
+          flight.cancel();
+        }).catch(() => {});
+        return duration;
+      }
+
+      function crushItem(def, button, inputPhysics = {}) {
         if (crushing) return;
         crushing = true;
+        const physics = throwPhysics(inputPhysics);
         scene.classList.add('shredding');
+        scene.classList.add(physics.lateral < 0 ? 'impact-left' : 'impact-right');
         if (button) button.classList.add('active');
         playMotorPulse();
 
         const item = buildItemElement(def);
+        item.style.setProperty('--bite-angle', `${physics.biteAngle}deg`);
         const activeBurstTimers = [];
         scene.appendChild(item);
-        // drop into the hopper
-        requestAnimationFrame(() => item.classList.add('drop'));
+        const flightDuration = animateItemFlight(item, physics);
 
-        // Item lands on the rollers and gets gripped → fed through the throat
         setTimeout(() => {
           item.classList.add('feed');
 
-          // Sparks at the throat where it gets bitten
           const sceneBounds = scene.getBoundingClientRect();
           const itemBounds = item.getBoundingClientRect();
           const x = itemBounds.left - sceneBounds.left + itemBounds.width / 2;
           const y = itemBounds.top  - sceneBounds.top  + itemBounds.height / 2;
           playCrunch(def);
-          createSparks(x, y, effectCount(def, 10));
-          createDust(x, y, 12);
+          createSparks(x, y, effectCount(def, Math.round(8 + physics.impact * 7)), physics);
+          createDust(x, y, Math.round(9 + physics.impact * 7));
           let burstCount = 0;
           const burstTimer = setInterval(() => {
             burstCount += 1;
@@ -1288,9 +1521,10 @@
               def,
               x + randomBetween(-burstConfig.horizontalJitter, burstConfig.horizontalJitter),
               y + randomBetween(burstConfig.verticalJitterMin, burstConfig.verticalJitterMax),
-              burstConfig.scale
+              burstConfig.scale * (0.82 + physics.impact * 0.42),
+              physics
             );
-            createSparks(x, y, effectCount(def, 5));
+            createSparks(x, y, effectCount(def, Math.round(3 + physics.impact * 4)), physics);
             if (burstCount >= burstConfig.iterations) {
               clearInterval(burstTimer);
               const timerIndex = activeBurstTimers.indexOf(burstTimer);
@@ -1298,37 +1532,38 @@
             }
           }, burstConfig.intervalMs);
           activeBurstTimers.push(burstTimer);
-        }, 600);
+        }, flightDuration);
 
-        // Fragments emerge below the rollers
         setTimeout(() => {
           const sceneBounds = scene.getBoundingClientRect();
           const fragX = sceneBounds.width / 2;
-          const fragY = sceneBounds.height * 0.72; // falling from under the rollers
-          createRibbons(fragX, fragY, def, effectCount(def, 24));
-          createFragments(fragX, fragY, def, effectCount(def, 22));
-          createDust(fragX, fragY, effectCount(def, 20));
-          addPilePieces(def, effectCount(def, 5));
+          const fragY = sceneBounds.height * 0.72;
+          const intensity = 0.72 + physics.impact * 0.38;
+          createRibbons(fragX, fragY, def, Math.round(effectCount(def, 24) * intensity), physics);
+          createFragments(fragX, fragY, def, Math.round(effectCount(def, 22) * intensity), physics);
+          createDust(fragX, fragY, Math.round(effectCount(def, 18) * intensity));
+          addPilePieces(def, Math.round(effectCount(def, 4) * intensity));
 
           crushedTotal += 1;
           lifetimeTotal += 1;
           localStorage.setItem('shredding-total', String(lifetimeTotal));
           updateStats();
           updateCombo();
-          log.textContent = `${def.name} is gone. Breathe out.`;
+          const impactWord = physics.impact > 0.85 ? 'violent' : physics.impact < 0.45 ? 'gentle' : 'clean';
+          log.textContent = `${def.name}: ${impactWord} ${Math.abs(physics.biteAngle) > 28 ? 'angled' : 'straight'} shred.`;
           if (navigator.vibrate && selectedMode === 'power') navigator.vibrate(powerModeVibrationPattern);
-        }, 1050);
+        }, flightDuration + 450);
 
-        // Cleanup
         setTimeout(() => {
           item.remove();
           activeBurstTimers.forEach((timer) => clearInterval(timer));
           activeBurstTimers.splice(0);
           if (button) button.classList.remove('active');
           scene.classList.remove('shredding');
+          scene.classList.remove('impact-left', 'impact-right');
           crushing = false;
           scheduleZenFeed(selectedMode === 'power' ? 300 : 850);
-        }, 1700);
+        }, flightDuration + 1120);
       }
 
       document.getElementById('modeRow').addEventListener('click', (event) => {
