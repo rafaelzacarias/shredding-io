@@ -174,6 +174,9 @@ function boot() {
       elements.status.textContent = `${event.detail.item.name} caught by the cutters.`;
       if (navigator.vibrate && state.mode === 'power') navigator.vibrate([25, 18, 35]);
     });
+    renderer.addEventListener('bite', (event) => {
+      audio.crunch(event.detail.item, event.detail.intensity * (state.mode === 'power' ? 1.25 : 1));
+    });
     renderer.addEventListener('shred', (event) => {
       state.recordShred();
       elements.status.textContent = `${event.detail.name} shredded.`;

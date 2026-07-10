@@ -341,7 +341,7 @@ export class ShredderRenderer extends EventTarget {
   }
 
   update(dt) {
-    const speed = this.machineLoad > 0 ? 5.2 : 1.5;
+    const speed = this.machineLoad > 0 ? 4.2 : 1.5;
     this.cutterAngle += dt * speed;
     this.machineLoad = Math.max(0, this.machineLoad - dt * 1.4);
     this.shake = Math.max(0, this.shake - dt * 2.5);
@@ -349,11 +349,21 @@ export class ShredderRenderer extends EventTarget {
     this.items.forEach((body) => {
       body.age += dt;
       if (body.state === 'captured') {
-        body.position[1] -= dt * 2.8;
-        body.position[2] -= dt * 0.35;
-        body.rotation[0] += dt * 8;
-        body.scale = Math.max(0.05, (body.scale ?? 1) - dt * 1.8);
-        if (body.position[1] < -0.8) {
+        body.captureAge += dt;
+        const duration = 1.05 + body.item.mass * .28;
+        const progress = Math.min(1, body.captureAge / duration);
+        body.position[1] = .52 - progress * .74;
+        body.position[2] = 1.18 + Math.sin(body.captureAge * 18) * .035 * (1 - progress);
+        body.rotation[0] += dt * (5.5 + body.item.mass);
+        body.rotation[2] += Math.sin(body.captureAge * 24) * dt * 1.8;
+        body.scale = [1 - progress * .12, Math.max(.06, 1 - progress * .94), 1 - progress * .3];
+        this.machineLoad = 1;
+        this.shake = this.reducedMotion ? 0 : Math.max(this.shake, .16 + body.item.mass * .06);
+        if (progress >= body.nextBite) {
+          this.bite(body, progress);
+          body.nextBite += this.reducedMotion ? .26 : .13;
+        }
+        if (progress >= 1) {
           body.dead = true;
           this.destroy(body);
         }
@@ -372,6 +382,8 @@ export class ShredderRenderer extends EventTarget {
         body.position[1] = 0.3;
         body.position[2] = 1.2;
         body.velocity = [0, 0, 0];
+        body.captureAge = 0;
+        body.nextBite = .08;
         this.machineLoad = 1;
         this.shake = this.reducedMotion ? 0 : 1;
         this.dispatchEvent(new CustomEvent('impact', { detail: { item: body.item, intensity: Math.min(1.6, body.age + body.item.mass * 0.35) } }));
@@ -411,28 +423,53 @@ export class ShredderRenderer extends EventTarget {
     this.particles = this.particles.filter((particle) => particle.life > 0);
   }
 
-  destroy(body) {
-    const count = this.reducedMotion ? 12 : Math.min(34, 18 + Math.round(body.item.mass * 8));
+  bite(body, progress) {
+    const count = this.reducedMotion ? 2 : 3 + Math.round(body.item.mass);
+    const hard = body.item.sound > .65;
     for (let i = 0; i < count; i += 1) {
       const color = i % 3 === 0 ? body.item.accent : body.item.color;
       this.fragments.push({
-        position: [random(-0.45, 0.45), -0.5, random(0.6, 1.7)],
-        velocity: [random(-4, 4), random(1.5, 6), random(-2, 2)],
+        position: [body.position[0] + random(-.42, .42), .08 - progress * .32, random(.72, 1.62)],
+        velocity: [random(-1.8, 1.8), random(-3.8, -.8), random(-1.2, 1.2)],
+        rotation: [random(0, 6), random(0, 6), random(0, 6)],
+        spin: [random(-7, 7), random(-7, 7), random(-7, 7)],
+        scale: body.item.shape === 'paper'
+          ? [random(.08, .2), random(.018, .035), random(.16, .34)]
+          : [random(.06, .16), random(.04, .11), random(.08, .24)],
+        color,
+        life: random(2.2, 4)
+      });
+    }
+    const particleColor = hard ? [1, .42, .12] : body.item.accent;
+    this.spark([body.position[0], .02, 1.18], particleColor, hard ? count * 2 : count);
+    this.dispatchEvent(new CustomEvent('bite', {
+      detail: { item: body.item, intensity: .55 + progress * .45 }
+    }));
+  }
+
+  destroy(body) {
+    const count = this.reducedMotion ? 3 : 5 + Math.round(body.item.mass * 2);
+    for (let i = 0; i < count; i += 1) {
+      const color = i % 3 === 0 ? body.item.accent : body.item.color;
+      this.fragments.push({
+        position: [body.position[0] + random(-.4, .4), -.34, random(.7, 1.6)],
+        velocity: [random(-1.6, 1.6), random(-4.5, -1.2), random(-1.2, 1.2)],
         rotation: [random(0, 6), random(0, 6), random(0, 6)],
         spin: [random(-8, 8), random(-8, 8), random(-8, 8)],
         scale: [random(0.05, 0.18), random(0.04, 0.13), random(0.12, 0.38)],
         color,
-        life: random(1.5, 3.4)
+        life: random(2.4, 4.2)
       });
     }
-    this.spark([0, -0.25, 1.1], [1, 0.32, 0.08], count * 2);
-    this.debris.push({
-      position: [random(-2.8, 2.8), -2.15, random(0, 2.5)],
-      rotation: [random(0, 1), random(0, 6), random(0, 1)],
-      scale: [random(.05, .18), random(.03, .09), random(.1, .35)],
-      color: body.item.color
-    });
-    if (this.debris.length > 52) this.debris.shift();
+    for (let i = 0; i < Math.max(2, Math.round(body.item.mass * 2)); i += 1) {
+      this.debris.push({
+        position: [body.position[0] + random(-1.4, 1.4), -2.15, random(.1, 2.4)],
+        rotation: [random(0, 1), random(0, 6), random(0, 1)],
+        scale: [random(.05, .18), random(.03, .09), random(.1, .35)],
+        color: i % 3 === 0 ? body.item.accent : body.item.color
+      });
+    }
+    while (this.debris.length > 52) this.debris.shift();
     this.dispatchEvent(new CustomEvent('shred', { detail: body.item }));
   }
 
@@ -555,7 +592,7 @@ export class ShredderRenderer extends EventTarget {
   }
 
   drawItem(item, position, rotation, scale) {
-    const common = [scale, scale, scale];
+    const common = Array.isArray(scale) ? scale : [scale, scale, scale];
     if (item.shape === 'disc' || item.shape === 'clock') {
       this.draw('cylinder', position, rotation, [common[0] * .18, common[1] * .72, common[2] * .72], item.color, .65);
       if (item.shape === 'disc') this.draw('cylinder', position, rotation, [common[0] * .19, common[1] * .14, common[2] * .14], [.03,.04,.05], .2);
@@ -570,9 +607,9 @@ export class ShredderRenderer extends EventTarget {
       box: [.8, .65, .48],
       cube: [.65, .65, .65]
     }[item.shape] || [.8, .6, .25];
-    this.draw('cube', position, rotation, dimensions.map((value) => value * scale), item.color, item.shape === 'phone' ? .75 : .15);
-    const accentPosition = [position[0], position[1], position[2] + dimensions[2] * scale + .012];
-    this.draw('cube', accentPosition, rotation, [dimensions[0] * .65 * scale, dimensions[1] * .08 * scale, .012], item.accent, .1, .25);
+    this.draw('cube', position, rotation, dimensions.map((value, index) => value * common[index]), item.color, item.shape === 'phone' ? .75 : .15);
+    const accentPosition = [position[0], position[1], position[2] + dimensions[2] * common[2] + .012];
+    this.draw('cube', accentPosition, rotation, [dimensions[0] * .65 * common[0], dimensions[1] * .08 * common[1], .012], item.accent, .1, .25);
   }
 
   drawParticles(projection, view) {
