@@ -129,7 +129,7 @@ const mat4 = {
   },
   rotateZ(angle) {
     const c = Math.cos(angle), s = Math.sin(angle);
-    return new Float32Array([c, s, 0, 0, -s, c, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
+    return new Float32Array([c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
   },
   compose(position, rotation = [0, 0, 0], scale = [1, 1, 1]) {
     let out = mat4.translate(...position);
