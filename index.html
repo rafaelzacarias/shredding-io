@@ -968,9 +968,14 @@
       const zenToggle = document.getElementById('zenToggle');
       const combo = document.getElementById('combo');
 
+      const savedLifetimeTotal = Number.parseInt(localStorage.getItem('shredding-total') || '0', 10);
+      const itemsPerLevel = 10;
+      const comboTimeoutMs = 5000;
+      const powerModeVibrationPattern = [25, 20, 35];
+
       let crushing = false;
       let crushedTotal = 0;
-      let lifetimeTotal = Number.parseInt(localStorage.getItem('shredding-total') || '0', 10);
+      let lifetimeTotal = Number.isFinite(savedLifetimeTotal) ? Math.max(0, savedLifetimeTotal) : 0;
       let soundEnabled = false;
       let zenEnabled = false;
       let zenTimer = null;
@@ -1038,16 +1043,16 @@
       }
 
       function updateStats() {
-        const machineLevel = Math.floor(lifetimeTotal / 10) + 1;
+        const machineLevel = Math.floor(lifetimeTotal / itemsPerLevel) + 1;
         counter.textContent = crushedTotal;
         allTime.textContent = lifetimeTotal;
         level.textContent = machineLevel;
-        progressFill.style.width = `${(lifetimeTotal % 10) * 10}%`;
+        progressFill.style.width = `${(lifetimeTotal % itemsPerLevel) * (100 / itemsPerLevel)}%`;
       }
 
       function updateCombo() {
         const now = Date.now();
-        comboCount = now - lastShredAt < 5000 ? comboCount + 1 : 1;
+        comboCount = now - lastShredAt < comboTimeoutMs ? comboCount + 1 : 1;
         lastShredAt = now;
         combo.textContent = `FLOW × ${comboCount}`;
         combo.classList.toggle('visible', comboCount > 1);
@@ -1311,7 +1316,7 @@
           updateStats();
           updateCombo();
           log.textContent = `${def.name} is gone. Breathe out.`;
-          if (navigator.vibrate && selectedMode === 'power') navigator.vibrate([25, 20, 35]);
+          if (navigator.vibrate && selectedMode === 'power') navigator.vibrate(powerModeVibrationPattern);
         }, 1050);
 
         // Cleanup
@@ -1353,7 +1358,7 @@
       document.addEventListener('keydown', (event) => {
         if (/^[0-9]$/.test(event.key)) {
           const index = event.key === '0' ? 9 : Number(event.key) - 1;
-          crushItem(items[index], itemList.children[index]);
+          if (items[index]) crushItem(items[index], itemList.children[index]);
         } else if (event.key.toLowerCase() === 'z') {
           setZen(!zenEnabled);
         } else if (event.key.toLowerCase() === 'm') {
