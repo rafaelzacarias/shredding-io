@@ -67,6 +67,7 @@ const PARTICLE_FRAGMENT = `
 
 const DISPLAY_CONFIG = {
   mobileBreakpoint: 700,
+  portraitAspectThreshold: 0.8,
   mobilePixelRatioCap: 1.5,
   desktopPixelRatioCap: 2
 };
@@ -455,7 +456,7 @@ export class ShredderRenderer extends EventTarget {
     gl.enable(gl.CULL_FACE);
 
     const aspect = this.canvas.width / this.canvas.height;
-    const mobile = aspect < .8;
+    const mobile = aspect < DISPLAY_CONFIG.portraitAspectThreshold;
     const shakeX = this.shake ? Math.sin(time * 83) * .035 * this.shake : 0;
     const camera = mobile ? [0 + shakeX, 5.7, 18.5] : [0 + shakeX, 5.1, 15.5];
     const projection = mat4.perspective(mobile ? .72 : .68, aspect, .1, 80);
