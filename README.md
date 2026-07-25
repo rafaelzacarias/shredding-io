@@ -1,6 +1,8 @@
 # shredding-io
 
-An immersive, dependency-free WebGL shredder game. Throw procedural 3D objects into a working twin-shaft machine and watch them break into physical debris.
+An immersive, dependency-free WebGL shredder game. Seen from directly above the hopper, throw procedural 3D objects toward the twin cutter shafts. Objects can bounce off the walls, but the sloped feed panels always send them into the teeth, where they are eaten at the machine's own steady pace.
+
+Only the edge caught in the teeth is destroyed: the rest of the object stays whole until the cut reaches it. Paper bends over the drums and combs out into strips, while hard things resist, judder, snap off in chunks and take longer to get through — and none of it depends on how hard you threw them.
 
 ## Run
 
@@ -14,10 +16,10 @@ Then open <http://localhost:8000>.
 
 ## Controls
 
-- Drag an object upward and release, or drag anywhere on the scene to throw the selected object.
+- Flick anywhere on the scene in any direction to throw the selected object into the hopper.
 - Press `1`–`0` to throw an object.
 - Press `M` for sound, `Z` for zen feed, and `P` for full power.
-- A tap or click throws the selected object at a default speed.
+- A tap or click drops the selected object straight into the hopper.
 
 Progress remains in local browser storage under the original `shredding-total` key.
 

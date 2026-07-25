@@ -2,16 +2,10 @@ const THROW_CONFIG = {
   sampleWindowMs: 130,
   maxSamples: 8,
   tapDistance: 10,
-  defaultVelocity: [0, 6.2, -7.4],
-  horizontalScale: 12,
-  horizontalLimit: 8,
-  verticalScale: 14,
-  verticalBoost: 2.8,
-  verticalMin: 2.2,
-  verticalMax: 11,
-  depthBase: -6.5,
-  depthScale: 2.2,
-  depthLimit: -11
+  speedScale: 22,
+  speedLimit: 15,
+  tossHeight: 1.6,
+  tapVelocity: [0, -1.4, 0]
 };
 
 export class ThrowInput extends EventTarget {
@@ -63,26 +57,22 @@ export class ThrowInput extends EventTarget {
       const dy = event.clientY - first.y;
       const distance = Math.hypot(event.clientX - gesture.start.x, event.clientY - gesture.start.y);
       const position = this.renderer.screenToWorld(event.clientX, event.clientY);
-      const velocity = distance < THROW_CONFIG.tapDistance
-        ? [...THROW_CONFIG.defaultVelocity]
-        : [
-            Math.max(
-              -THROW_CONFIG.horizontalLimit,
-              Math.min(THROW_CONFIG.horizontalLimit, dx / elapsed * THROW_CONFIG.horizontalScale)
-            ),
-            Math.max(
-              THROW_CONFIG.verticalMin,
-              Math.min(THROW_CONFIG.verticalMax, -dy / elapsed * THROW_CONFIG.verticalScale + THROW_CONFIG.verticalBoost)
-            ),
-            Math.max(
-              THROW_CONFIG.depthLimit,
-              THROW_CONFIG.depthBase - Math.hypot(dx, dy) / elapsed * THROW_CONFIG.depthScale
-            )
-          ];
-      this.dispatchEvent(new CustomEvent('throw', { detail: { item: gesture.item, position, velocity } }));
+      this.dispatchEvent(new CustomEvent('throw', {
+        detail: { item: gesture.item, position, velocity: this.gestureVelocity(dx, dy, elapsed, distance) }
+      }));
     };
 
     element.addEventListener('pointerup', (event) => finish(event, false));
     element.addEventListener('pointercancel', (event) => finish(event, true));
+  }
+
+  // Screen axes map straight onto the floor of the shaft: right is +x, down is +z.
+  gestureVelocity(dx, dy, elapsed, distance) {
+    if (distance < THROW_CONFIG.tapDistance) return [...THROW_CONFIG.tapVelocity];
+    const x = dx / elapsed * THROW_CONFIG.speedScale;
+    const z = dy / elapsed * THROW_CONFIG.speedScale;
+    const speed = Math.hypot(x, z);
+    const limit = speed > THROW_CONFIG.speedLimit ? THROW_CONFIG.speedLimit / speed : 1;
+    return [x * limit, THROW_CONFIG.tossHeight, z * limit];
   }
 }

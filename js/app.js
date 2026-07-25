@@ -23,15 +23,6 @@ const elements = {
 
 const state = new GameState();
 const audio = new MachineAudio();
-const ZEN_THROW = {
-  horizontalRange: 3,
-  horizontalOffset: -1.5,
-  startY: -1.4,
-  startZ: 5.2,
-  upwardBase: 7,
-  upwardVariance: 2.5,
-  depthVelocity: -7.2
-};
 let selectedIndex = 0;
 let renderer;
 let input;
@@ -47,7 +38,7 @@ function select(index) {
     button.classList.toggle('selected', buttonIndex === index);
     button.setAttribute('aria-pressed', String(buttonIndex === index));
   });
-  elements.status.textContent = `${ITEMS[index].name} ready. Drag up and release.`;
+  elements.status.textContent = `${ITEMS[index].name} ready. Flick it into the hopper.`;
 }
 
 function renderItems() {
@@ -84,28 +75,19 @@ function updateHud(snapshot) {
 function launch(item, position, velocity) {
   renderer.throwItem(item, position, velocity);
   elements.hint.classList.add('used');
-  elements.status.textContent = `${item.name} airborne…`;
+  elements.status.textContent = `${item.name} is in the hopper…`;
 }
 
-function launchKeyboard(item) {
-  launch(item, [0, -1.2, 5.2], [Math.random() * 2.2 - 1.1, 7.5, -7.5]);
+function launchAuto(item) {
+  const spawn = renderer.rimSpawn();
+  launch(item, spawn.position, spawn.velocity);
 }
 
 function scheduleZen(delay = 650) {
   clearTimeout(zenTimer);
   if (!state.zen) return;
   zenTimer = setTimeout(() => {
-    const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-    const horizontalVelocity = Math.random() * ZEN_THROW.horizontalRange + ZEN_THROW.horizontalOffset;
-    launch(
-      item,
-      [horizontalVelocity, ZEN_THROW.startY, ZEN_THROW.startZ],
-      [
-        horizontalVelocity,
-        ZEN_THROW.upwardBase + Math.random() * ZEN_THROW.upwardVariance,
-        ZEN_THROW.depthVelocity
-      ]
-    );
+    launchAuto(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
   }, delay);
 }
 
@@ -137,7 +119,7 @@ function bindControls() {
       const index = event.key === '0' ? 9 : Number(event.key) - 1;
       if (ITEMS[index]) {
         select(index);
-        launchKeyboard(ITEMS[index]);
+        launchAuto(ITEMS[index]);
       }
     } else if (event.key.toLowerCase() === 'z') {
       elements.zen.click();
@@ -177,13 +159,16 @@ function boot() {
     renderer.addEventListener('bite', (event) => {
       audio.crunch(event.detail.item, event.detail.intensity * (state.mode === 'power' ? 1.25 : 1));
     });
+    renderer.addEventListener('bounce', (event) => {
+      audio.impact(event.detail.item, .25 + event.detail.intensity * .5);
+    });
     renderer.addEventListener('shred', (event) => {
       state.recordShred();
       elements.status.textContent = `${event.detail.name} shredded.`;
       scheduleZen(state.mode === 'power' ? 300 : 800);
     });
     renderer.addEventListener('miss', (event) => {
-      elements.status.textContent = `${event.detail.name} missed. Try a straighter throw.`;
+      elements.status.textContent = `${event.detail.name} jammed in the hopper.`;
       scheduleZen(400);
     });
     renderer.addEventListener('contextlost', () => {
