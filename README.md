@@ -2,7 +2,11 @@
 
 An immersive, dependency-free WebGL shredder game. Seen from directly above the hopper, throw procedural 3D objects toward the twin cutter shafts. Objects can bounce off the walls, but the sloped feed panels always send them into the teeth, where they are eaten at the machine's own steady pace.
 
-Only the edge caught in the teeth is destroyed: the rest of the object stays whole until the cut reaches it. Paper bends over the drums and combs out into strips, while hard things resist, judder, snap off in chunks and take longer to get through — and none of it depends on how hard you threw them.
+Nothing is a coloured box: every object is built out of parts in [js/parts.js](js/parts.js) — keycaps on a plate, bells and gears in a clock, glass over a phone, papers inside a tray — and the cut line destroys those parts one at a time, in the order the teeth reach them. So the keys pop off row by row and bounce back in for a second helping, the CD cracks into shards instead of being cut, the clipboard's steel clip stalls the whole machine, the cardboard tray folds in on itself, and the phone's battery only gets punctured once the case around it has gone. Whatever is not in the teeth yet stays whole, and none of it depends on how hard you threw the thing.
+
+Nothing falls the same way either. Air resistance follows the face an object turns into the wind, so a sheet of paper sails, stalls and tips over on itself all the way down while a phone drops straight and lands hard. Where something comes to rest is worked out from how it is lying, so a sheet ends up flush with the deck and a stress cube sits up on a face; landing on a corner makes it rock down onto a face, and a face too small to hold it up sends it toppling onto one that can. Discs and clocks run on their rim before lying down.
+
+Nothing is laid flat to be destroyed. The teeth take an object once it is down and lying on a face that holds it, and then feed it in exactly that pose: a sheet goes through the way it landed, along whichever of its own edges is pointing at the nip, while anything too thick to pass between the drums is held over the nip and ground away from the bottom up, sinking as it goes.
 
 ## Run
 

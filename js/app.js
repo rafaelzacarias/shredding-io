@@ -159,6 +159,15 @@ function boot() {
     renderer.addEventListener('bite', (event) => {
       audio.crunch(event.detail.item, event.detail.intensity * (state.mode === 'power' ? 1.25 : 1));
     });
+    renderer.addEventListener('jam', (event) => {
+      audio.impact(event.detail.item, 1.4);
+      audio.load(2.4);
+      elements.status.textContent = `${event.detail.item.name} is fighting back…`;
+      if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 60]);
+    });
+    renderer.addEventListener('chew', (event) => {
+      audio.crunch({ mass: event.detail.size * 4, sound: .7 }, .5);
+    });
     renderer.addEventListener('bounce', (event) => {
       audio.impact(event.detail.item, .25 + event.detail.intensity * .5);
     });
